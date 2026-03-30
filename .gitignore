@@ -47,3 +47,11 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Environment variables — never commit these
+.env
+.env.local
+.env.*.local
+
+# Case data — local saves, don't push to GitHub
+artifacts/api-server/data/
