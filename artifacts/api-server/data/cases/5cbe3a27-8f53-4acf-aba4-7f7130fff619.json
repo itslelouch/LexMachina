@@ -1,0 +1,104 @@
+{
+  "persons": [
+    {
+      "id": "1e6723ac-ef34-4e9d-b2b8-a93c1120d19a",
+      "name": "Deepak",
+      "role": "Victim",
+      "context": "Deepak was found unconscious with severe head injuries near Nehru Nagar, Anand Parbat, Delhi. He was taken to LHMC Hospital but later succumbed to his injuries, with the cause of death determined as blunt force trauma to the head.",
+      "deceased": true
+    },
+    {
+      "id": "29b63d95-f9f4-4a0c-9b7f-cac67e77cc1a",
+      "name": "Ravinder",
+      "role": "Accused",
+      "context": "Ravinder is the accused in the case, allegedly involved in an assault on the victim during a quarrel at a marriage function. He was interrogated by police, and charges were filed against him under Section 302 IPC (Murder) after the victim died.",
+      "deceased": false
+    },
+    {
+      "id": "b8bbed0c-61c0-479e-8582-f379e897c199",
+      "name": "Dinesh Sharma",
+      "role": "Eyewitness",
+      "context": "Dinesh Sharma, the victim’s brother, provided a witness statement indicating he saw the accused near the scene of the incident. He is identified as an eyewitness to the events leading to the injury.",
+      "deceased": false
+    }
+  ],
+  "activeWitness": null,
+  "legalSystem": "indian",
+  "demeanor": "theatrical",
+  "evidence": [],
+  "jurySentiment": {
+    "prosecution": 41,
+    "defense": 39,
+    "neutral": 20
+  },
+  "caseId": "5cbe3a27-8f53-4acf-aba4-7f7130fff619",
+  "title": "State Vs Ravindraaa",
+  "caseText": "CASE FILE: State vs Ravinder\nCourt: Sessions Court, Delhi\nFIR No: 525/2016\nPolice Station: Anand Parbat, Delhi\nDate of FIR: 04 December 2016\nINCIDENT SUMMARY:\nVictim Deepak was found unconscious with severe head injuries near Nehru Nagar, Anand Parbat, Delhi. A PCR call led police to the scene, and the victim was taken to LHMC Hospital. Initial investigation suggests a quarrel between the accused Ravinder and the victim at a marriage function that escalated into physical assault.\nACCUSED:\nRavinder – allegedly involved in assault leading to fatal injuries\nIPC Sections Alleged: 307 IPC (Attempt to Murder), later upgraded to 302 IPC (Murder) after victim succumbed\nEVIDENCE COLLECTED BY POLICE:\nWitness statement of victim’s brother (saw accused near the scene).\nPostmortem examination in hospital (cause: blunt force trauma to head).\nClothes seized from accused with blood stains (sent to FSL).\nAccused interrogation notes.\nTimeline of incident and initial hospital report.\nWITNESSES:\nDinesh Sharma (victim’s brother) – eyewitness to events leading to injury\nHospital staff at LHMC – treated victim on arrival\nPolice officers present at initial scene\nCHARGESHEET / COURT ENTRY:\nInvestigating Officer filed chargesheet under Section 302 IPC (Murder)\nCourt received the charge sheet and summoned accused Ravinder\nAccused pleaded not guilty",
+  "phase": "pre_trial_motions",
+  "roles": {
+    "judge": "ai",
+    "prosecutor": "ai",
+    "defense": "ai"
+  },
+  "transcript": [
+    {
+      "id": "af4ff7be-881c-40c9-8140-f95bc821ca4e",
+      "role": "system",
+      "speaker": "Court",
+      "content": "Court is now in session. The Honorable Judge presiding. This is the matter of: State Vs Ravindraaa. All parties are present. Proceedings will begin with Pre-Trial Motions.",
+      "timestamp": "2026-03-30T07:02:54.568Z",
+      "controlledBy": "system"
+    },
+    {
+      "id": "e24ee431-29b6-4883-b89b-363031c14fe5",
+      "role": "judge",
+      "speaker": "The Honorable Judge",
+      "content": "The court is now in session. This matter concerns the State versus Ravinder, FIR No. 525/2016 registered at Anand Parbat Police Station, wherein the accused stands charged under Section 302 IPC for the alleged murder of Deepak. The prosecution has filed a chargesheet, and the accused has pleaded not guilty—proceedings shall now commence with pre-trial motions. Counsel may raise any preliminary applications at this time.",
+      "timestamp": "2026-03-30T07:05:17.875Z",
+      "controlledBy": "ai"
+    },
+    {
+      "id": "7dc8ce1d-1724-4f18-937d-dff756b2f417",
+      "role": "prosecutor",
+      "speaker": "Prosecution Counsel",
+      "content": "Your Honor, the State respectfully submits that the chargesheet filed under Section 302 IPC is fully supported by credible evidence, including the eyewitness account of the victim’s brother, forensic reports confirming blunt force trauma as the cause of death, and blood-stained clothing recovered from the accused. We oppose any application for discharge or bail at this stage, as the prima facie case against the accused is strong and the offense carries the gravest consequences under law. The prosecution is ready to proceed with framing of charges and presentation of evidence without delay.",
+      "timestamp": "2026-03-30T07:05:20.635Z",
+      "controlledBy": "ai"
+    },
+    {
+      "id": "017121cc-e706-4fd5-b085-0ec5f9b7b139",
+      "role": "defense",
+      "speaker": "Defense Counsel",
+      "content": "Your Honor, while the prosecution asserts a strong prima facie case, we submit that the evidence is circumstantial and riddled with gaps—there is no direct proof linking the accused to the fatal assault, and the so-called eyewitness account lacks corroboration and consistency. Furthermore, the recovery of blood-stained clothes raises more questions than answers, particularly regarding chain of custody and the circumstances of seizure, which we intend to challenge under Section 23 of the Bharatiya Sakshya Adhiniyam. In light of these material doubts and the absence of conclusive forensic linkage, we respectfully urge the court to consider our application for discharge under Section 230 of the BNSS, as the prosecution has failed to establish a case that would warrant framing of charges.",
+      "timestamp": "2026-03-30T07:05:26.375Z",
+      "controlledBy": "ai"
+    },
+    {
+      "id": "62f78fd5-e21f-4b26-9bd0-7d04f0374081",
+      "role": "judge",
+      "speaker": "The Honorable Judge",
+      "content": "The court has carefully considered the submissions of both the prosecution and the defense at this pre-trial stage. While the defense urges discharge under Section 230 of the BNSS, the court finds that the chargesheet, supported by the eyewitness account of Dinesh Sharma, the postmortem report indicating death due to blunt force trauma, and the recovery of blood-stained clothing from the accused, discloses sufficient grounds to proceed further.  \n\n**Order!** The application for discharge is hereby **rejected**. The court is satisfied that a prima facie case exists to frame charges under Section 302 IPC. The prosecution may proceed with the framing of charges.",
+      "timestamp": "2026-03-30T07:05:30.849Z",
+      "controlledBy": "ai"
+    },
+    {
+      "id": "3fc01382-ee48-4cfc-acbd-e095eda7ef66",
+      "role": "prosecutor",
+      "speaker": "Prosecution Counsel",
+      "content": "Your Honor, the State firmly maintains that the chargesheet under Section 302 IPC is not only legally sound but substantiated by credible and cogent evidence—starting with the eyewitness testimony of Dinesh Sharma, who placed the accused at the scene moments before the assault, corroborated by the postmortem report confirming death due to blunt force trauma consistent with a violent attack, and further strengthened by the recovery of blood-stained clothing from the accused, which has been sent to the FSL for forensic analysis. We submit that the chain of events, as revealed in the investigation, leaves no reasonable doubt that the accused, Ravinder, committed the fatal assault following a quarrel at the marriage function, and we are prepared to prove his guilt beyond reasonable doubt at trial. The prosecution respectfully requests that the court proceed with the framing of charges so that justice may be served for the deceased and his grieving family.",
+      "timestamp": "2026-03-30T07:05:36.668Z",
+      "controlledBy": "ai"
+    },
+    {
+      "id": "9a16caca-bf6c-4dbd-9d55-568320123d70",
+      "role": "defense",
+      "speaker": "Defense Counsel",
+      "content": "Your Honor, while the prosecution relies heavily on the testimony of Dinesh Sharma, we submit that his account is uncorroborated, inconsistent with the timeline, and fails to establish beyond reasonable doubt that the accused delivered the fatal blow. The blood-stained clothes allegedly recovered from the accused lack a clear chain of custody, and under Section 23 of the Bharatiya Sakshya Adhiniyam, any evidence obtained without strict procedural compliance is inherently suspect. Given these critical gaps and the absence of direct forensic linkage, we maintain that the charges under Section 302 IPC cannot stand and urge the court to reconsider the framing of charges in light of these material deficiencies.",
+      "timestamp": "2026-03-30T07:05:40.564Z",
+      "controlledBy": "ai"
+    }
+  ],
+  "developments": [],
+  "createdAt": "2026-03-30T07:02:54.568Z",
+  "updatedAt": "2026-03-30T07:05:40.564Z"
+}
