@@ -1,0 +1,733 @@
+
+API Docs
+LongCat API Platform
+Languages
+Quick Start
+How to Get an API Key?
+Register an Account
+Create Your API Key
+Supported API Types
+OpenAI API Format
+Anthropic API Format
+Endpoints
+Supported Models
+How to Get Usage Quota?
+Daily Free Quota
+Ways to Request More Free Quota
+Quota Usage Instructions
+Quota Inquiry
+Rate Limiting Rules
+Single Request Limit
+Over-limit Handling
+Quick Integration Examples
+OpenAI API Format Example
+Anthropic API Format Example
+cURL Example
+Important Reminders
+API Docs
+Claude Code Configuration
+OpenClaw Configuration
+FAQ
+Change Log
+LongCat API Platform Quick Start Guide
+Welcome to the LongCat API Platform! This document will help you get started quickly and begin using our large model services.
+
+How to Get an API Key?
+Register an Account
+Visit LongCat API Platform
+Fill in the required information to complete account registration
+Create Your API Key
+After registering and logging in, go to the API Keys page and click “Create API Key” to manually generate a key.
+Once created, you can view the following details in the list:
+Name: Your custom identifier for the application
+Key: The system-generated secret (please keep it safe and do not disclose it)
+Supported API Types
+LongCat API Platform is compatible with two mainstream API formats. You can choose according to your needs:
+
+OpenAI API Format
+Fully compatible with the OpenAI API specification, supporting the following endpoints:
+
+Chat Completion: /v1/chat/completions
+Anthropic API Format
+Compatible with the Anthropic Claude API specification, supporting the following endpoint:
+
+Message Chat: /v1/messages
+Endpoints
+OpenAI Format: https://api.longcat.chat/openai
+Anthropic Format: https://api.longcat.chat/anthropic
+Supported Models
+Model Name	API Format	Description
+LongCat-Flash-Chat	OpenAI/Anthropic	High-performance general-purpose chat model
+LongCat-Flash-Thinking	OpenAI/Anthropic	Deep-thinking model
+LongCat-Flash-Thinking-2601	OpenAI/Anthropic	Upgraded deep-thinking Model
+LongCat-Flash-Lite	OpenAI/Anthropic	Efficient MoE model
+How to Get Usage Quota?
+Daily Free Quota
+Each account automatically receives 500,000 Tokens free quota per day, which can be used for the LongCat-Flash-Chat, LongCat-Flash-Thinking, and LongCat-Flash-Thinking-2601 models.LongCat-Flash-Lite model, each account automatically receives 50,000,000 Tokens free quota per day.
+The free quota is refreshed automatically at midnight (Beijing Time) every day
+Unused quota from the previous day will be cleared and will not roll over to the next day
+Ways to Request More Free Quota
+Before applying for a quota increase, please ensure that you have created an API Key
+You can visit the Usage to apply for an increase in your free Tokens quota. Upon approval, your free quota will be raised to 5,000,000 Tokens/day（Note: This quota increase applies only to the LongCat-Flash-Chat,LongCat-Flash-Thinking, and LongCat-Flash-Thinking-2601 models; the LongCat-Flash-Lite model is not eligible for quota upgrades.）
+For additional quota, please contact us by email at longcat-team@meituan.com . Please provide any API Key under your account in the email so that we can process your request promptly
+Quota Usage Instructions
+Both input and output Tokens are counted towards consumption
+Streaming and non-streaming endpoints consume quota equally
+Quota Inquiry
+You can view your usage in real time at Usage
+
+Note: The platform is currently in public beta and does not support paid quota purchases.
+
+Rate Limiting Rules
+Single Request Limit
+Output text:
+LongCat-Flash-Chat / LongCat-Flash-Thinking / LongCat-Flash-Thinking-2601: Maximum 256K Tokens
+LongCat-Flash-Lite: Maximum 320K Tokens
+Over-limit Handling
+When rate limiting is triggered, the API will return HTTP status code 429. Example response:
+
+{
+  "error": {
+    "code": "rate_limit_exceeded",
+    "message": "Request rate limit exceeded, please try again later",
+    "type": "rate_limit_error",
+    "retry_after": 60
+  }
+}
+It is recommended to implement exponential backoff retry mechanism on the client side.
+
+Quick Integration Examples
+OpenAI API Format Example
+Python Example
+import requests
+
+url = "https://api.longcat.chat/openai/v1/chat/completions"
+headers = {
+    "Authorization": "Bearer YOUR_APP_KEY",
+    "Content-Type": "application/json"
+}
+
+data = {
+    "model": "LongCat-Flash-Chat",
+    "messages": [
+        {"role": "user", "content": "Hello, please introduce yourself."}
+    ],
+    "max_tokens": 1000,
+    "temperature": 0.7
+}
+
+response = requests.post(url, headers=headers, json=data)
+print(response.json())
+Using OpenAI SDK
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="YOUR_APP_KEY",
+    base_url="https://api.longcat.chat/openai"
+)
+
+response = client.chat.completions.create(
+    model="LongCat-Flash-Chat",
+    messages=[
+        {"role": "user", "content": "Hello!"}
+    ],
+    max_tokens=1000
+)
+
+print(response.choices[0].message.content)
+Anthropic API Format Example
+Using Anthropic SDK
+from anthropic import Anthropic
+
+client = Anthropic(
+    api_key="Authorization: Bearer YOUR_APP_KEY",
+    base_url="https://api.longcat.chat/anthropic/",
+    default_headers={
+        "Content-Type": "application/json",
+        "Authorization": "Bearer YOUR_APP_KEY",
+    }
+)
+
+
+response = client.messages.create(
+    model="LongCat-Flash-Chat",
+    max_tokens=1000,
+    messages=[
+        {"role": "user", "content": "Hello!"}
+    ]
+)
+
+print(response.content[0].text)
+cURL Example
+OpenAI Format
+curl -X POST https://api.longcat.chat/openai/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_APP_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "LongCat-Flash-Chat",
+    "messages": [{"role": "user", "content": "Hello!"}],
+    "max_tokens": 1000
+  }'
+Anthropic Format
+curl -X POST https://api.longcat.chat/anthropic/v1/messages \
+  -H "Authorization: Bearer YOUR_APP_KEY" \
+  -H "Content-Type: application/json" \
+  -H "anthropic-version: 2023-06-01" \
+  -d '{
+    "model": "LongCat-Flash-Chat",
+    "max_tokens": 1000,
+    "messages": [{"role": "user", "content": "Hello!"}]
+  }'
+Important Reminders
+Please use your daily free quota reasonably. Unused quota will not be retained for the next day
+Please keep your API Key safe to avoid quota theft due to leakage
+Now you have learned the basics of using the LongCat API Platform. Go ahead and try it out!
+
+Last Updated: 2/9/26, 5:21 PM
+Contributors: zhuqi09, wb_changzhe02
+Next 
+API Docs
+
+
+
+
+API Docs
+LongCat API Platform
+Languages
+Quick Start
+API Docs
+Overview
+Base URLs
+Authentication
+Endpoints
+Chat Completions
+Anthropic Messages
+Error Responses
+HTTP Status Codes
+Error Response Format
+Error Types and Codes
+Example Error Responses
+Rate Limiting
+SDK Compatibility
+Examples
+Using with OpenAI Python SDK
+Using with Anthropic Python SDK
+Using with cURL
+Claude Code Configuration
+OpenClaw Configuration
+FAQ
+Change Log
+LongCat API Platform Interface Documentation
+Overview
+The LongCat API Platform provides AI model proxy services exclusively for the LongCat series models, while maintaining compatibility with OpenAI and Anthropic API formats. This documentation follows standard API format conventions.
+
+Base URLs
+Production Endpoint: https://api.longcat.chat
+Authentication
+All API requests require authentication using an API key in the Authorization header:
+
+Authorization: Bearer YOUR_API_KEY
+Endpoints
+Chat Completions
+POST /openai/v1/chat/completions
+Create a chat completion using OpenAI-compatible format.
+
+Headers
+
+Authorization: Bearer YOUR_API_KEY (required)
+Content-Type: application/json
+Request Body
+
+Field	Type	Required	Description
+model	string	Yes	Model identifier (only LongCat-Flash-Chat is supported)
+messages	array	Yes	Array of message objects, only text inputs are allowed
+stream	boolean	No	Whether to stream the response (default: false)
+max_tokens	integer	No	Maximum number of tokens to generate, the default value is 131072 for LongCat-Flash-Chat, and 262144 for other models. LongCat-Flash-Chat, LongCat-Flash-Thinking and LongCat-Flash-Thinking-2601 are supported up to 262144 tokens; LongCat-Flash-Lite is supported up to 327680 tokens
+temperature	number	No	Sampling temperature between 0 and 1
+top_p	number	No	Nucleus sampling parameter
+Message Object
+
+Field	Type	Required	Description
+role	string	Yes	The role of the message author. Must be one of:
+• system - Sets the behavior and context for the assistant
+• user - Messages from the human user
+• assistant - Messages from the AI assistant (for conversation history)
+content	string	Yes	The message content. A string for simple text messages.
+Example Request
+
+{
+  "model": "LongCat-Flash-Chat",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a helpful assistant."
+    },
+    {
+      "role": "user",
+      "content": "Hello, how are you?"
+    }
+  ],
+  "stream": false,
+  "max_tokens": 150,
+  "temperature": 0.7
+}
+Example Request(Thinking)
+
+{
+  "model": "LongCat-Flash-Thinking-2601",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a helpful assistant."
+    },
+    {
+      "role": "user",
+      "content": "Hello, how are you?"
+    }
+  ],
+  "stream": false,
+  "max_tokens": 1500,
+  "temperature": 0.7
+}
+Response (Non-streaming)
+
+{
+  "id": "chatcmpl-123",
+  "object": "chat.completion",
+  "created": 1677652288,
+  "model": "LongCat-Flash-Chat",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Hello! I'm doing well, thank you for asking. How can I help you today?"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 20,
+    "completion_tokens": 15,
+    "total_tokens": 35
+  }
+}
+Response (Streaming)
+
+When stream: true, the response is returned as Server-Sent Events (SSE):
+
+Content-Type: text/event-stream
+
+data: {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1677652288,"model":"LongCat-Flash-Chat","choices":[{"index":0,"delta":{"role":"assistant","content":""},"finish_reason":null}]}
+
+data: {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1677652288,"model":"LongCat-Flash-Chat","choices":[{"index":0,"delta":{"content":"Hello"},"finish_reason":null}]}
+
+data: {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1677652288,"model":"LongCat-Flash-Chat","choices":[{"index":0,"delta":{"content":"!"},"finish_reason":null}]}
+
+data: [DONE]
+
+Anthropic Messages
+POST /anthropic/v1/messages
+Create a message using Anthropic's Claude API format.
+
+Headers
+
+Authorization: Bearer YOUR_API_KEY (required)
+Content-Type: application/json
+Request Body
+
+Field	Type	Required	Description
+model	string	Yes	The Claude model to use
+messages	array	Yes	Array of message objects
+max_tokens	integer	No	Maximum number of tokens to generate
+stream	boolean	No	Whether to stream the response (default: false)
+temperature	number	No	Sampling temperature between 0 and 1
+top_p	number	No	Nucleus sampling parameter
+system	string	No	System message to set context
+Message Object
+
+Field	Type	Required	Description
+role	string	Yes	The role of the message author. Must be one of:
+• user - Messages from the human user
+• assistant - Messages from Claude (for conversation history)
+Note: System messages are passed separately via the system parameter
+content	string	Yes	The message content. A string for text-only messages
+Example Request
+
+{
+  "model": "LongCat-Flash-Chat",
+  "max_tokens": 1000,
+  "messages": [
+    {
+      "role": "user",
+      "content": "Hello, LongCat"
+    }
+  ],
+  "stream": false,
+  "temperature": 0.7
+}
+Example Request(Thinking)
+
+{
+  "model": "LongCat-Flash-Thinking-2601",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Hello, how are you?"
+    }
+  ],
+  "system": "You are a helpful assistant.",
+  "stream": false,
+  "max_tokens": 1500,
+  "temperature": 0.7
+}
+Response (Non-streaming)
+
+{
+  "id": "msg_123",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "Hello! How can I help you today?"
+    }
+  ],
+  "model": "LongCat-Flash-Chat",
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 10,
+    "output_tokens": 8
+  }
+}
+Response (Streaming)
+
+When stream: true, the response follows Anthropic's SSE format:
+
+Content-Type: text/event-stream
+
+event: message_start
+data: {"type": "message_start", "message": {"id": "msg_123", "type": "message", "role": "assistant", "content": [], "model": "LongCat-Flash-Chat", "stop_reason": null, "stop_sequence": null, "usage": {"input_tokens": 10, "output_tokens": 0}}}
+
+event: content_block_start
+data: {"type": "content_block_start", "index": 0, "content_block": {"type": "text", "text": ""}}
+
+event: content_block_delta
+data: {"type": "content_block_delta", "index": 0, "delta": {"type": "text_delta", "text": "Hello"}}
+
+event: content_block_delta
+data: {"type": "content_block_delta", "index": 0, "delta": {"type": "text_delta", "text": "!"}}
+
+event: content_block_stop
+data: {"type": "content_block_stop", "index": 0}
+
+event: message_delta
+data: {"type": "message_delta", "delta": {"stop_reason": "end_turn", "stop_sequence": null}, "usage": {"output_tokens": 8}}
+
+event: message_stop
+data: {"type": "message_stop"}
+
+Error Responses
+The API uses conventional HTTP response codes to indicate success or failure:
+
+HTTP Status Codes
+Status Code	Status Name	Description
+200	OK	Request successful
+400	Bad Request	Invalid request parameters or malformed JSON
+401	Unauthorized	Invalid or missing API key
+403	Forbidden	API key doesn't have permission for the requested resource
+429	Too Many Requests	Rate limit exceeded
+500	Internal Server Error	Server encountered an unexpected condition
+502	Bad Gateway	Invalid response from upstream server
+503	Service Unavailable	Server temporarily unavailable
+Error Response Format
+All errors return a JSON object with the following structure:
+
+{
+  "error": {
+    "message": "Human-readable error description",
+    "type": "error_type_identifier", 
+    "code": "specific_error_code"
+  }
+}
+Error Types and Codes
+Error Type	Error Code	HTTP Status	Description
+authentication_error	invalid_api_key	401	Invalid API key provided
+permission_error	insufficient_quota	403	API key has insufficient quota
+invalid_request_error	invalid_parameter	400	Invalid parameter value
+invalid_request_error	invalid_json	400	Invalid JSON format
+rate_limit_error	rate_limit_exceeded	429	Too many requests in a short period
+server_error	internal_error	500	Internal server error
+Example Error Responses
+Invalid API Key
+
+{
+  "error": {
+    "message": "Invalid API key provided",
+    "type": "authentication_error",
+    "code": "invalid_api_key"
+  }
+}
+Rate Limit Exceeded
+
+{
+  "error": {
+    "message": "Rate limit exceeded. Please try again in 60 seconds",
+    "type": "rate_limit_error",
+    "code": "rate_limit_exceeded"
+  }
+}
+Rate Limiting
+Rate limits are enforced per API key. When exceeded, you'll receive a 429 status code.
+
+SDK Compatibility
+This API is designed to be compatible with:
+
+OpenAI Python SDK (for /openai/ endpoints)
+Anthropic Python SDK (for /anthropic/ endpoints)
+Any HTTP client that supports the respective API formats
+Examples
+Using with OpenAI Python SDK
+import openai
+
+# Configure for LongCat API
+openai.api_base = "https://api.longcat.chat/openai"
+openai.api_key = "your-api-key"
+
+response = openai.ChatCompletion.create(
+    model="LongCat-Flash-Chat",
+    messages=[
+        {"role": "user", "content": "Hello!"}
+    ]
+)
+Using with Anthropic Python SDK
+import anthropic
+
+# Configure for LongCat API  
+client = anthropic.Anthropic(
+    api_key="Bearer your-api-key",
+    base_url="https://api.longcat.chat"
+)
+default_headers={
+        "Content-Type": "application/json",
+        "Authorization": "Bearer your-api-key",
+    }
+
+
+message = client.messages.create(
+    model="LongCat-Flash-Chat",
+    max_tokens=150,
+    messages=[
+        {"role": "user", "content": "Hello, LongCat!"}
+    ]
+)
+Using with cURL
+# OpenAI-style request
+curl -X POST https://api.longcat.chat/openai/v1/chat/completions \
+  -H "Authorization: Bearer your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "LongCat-Flash-Chat",
+    "messages": [{"role": "user", "content": "Hello!"}],
+    "stream": false
+  }'
+
+# Anthropic-style request
+curl -X POST https://api.longcat.chat/anthropic/v1/messages \
+  -H "Authorization: Bearer your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "LongCat-Flash-Chat",
+    "max_tokens": 1000,
+    "messages": [{"role": "user", "content": "Hello!"}]
+  }'
+📋 Need Help? Check out our comprehensive FAQ for common questions and troubleshooting guide.
+
+Last Updated: 3/4/26, 5:04 PM
+Contributors: zhuqi09, wb_changzhe02
+ Prev
+Quick Start
+Next 
+
+
+
+
+API Docs
+LongCat API Platform
+Languages
+Quick Start
+API Docs
+Claude Code Configuration
+OpenClaw Configuration
+FAQ
+General Questions
+Authentication & API Keys
+Request Format & Parameters
+Error Handling
+SDK Integration
+Performance
+Troubleshooting
+Common Integration Patterns
+Change Log
+LongCat API Platform FAQ
+General Questions
+Q: What services does the LongCat API Platform provide?
+
+A: The LongCat API Open Platform provides AI model proxy services specifically for the LongCat series models. By maintaining compatibility with OpenAI and Anthropic API formats, you can use existing SDKs and tools to access the LongCat series model.
+
+Q: What registration/login methods are supported by the LongCat API Platform?
+
+A: Users in Mainland China can register/login using their mobile phone number. Users outside Mainland China can register/login using either their mobile phone number or email.
+
+Q: What should I do if I do not receive the verification code when logging in with my mobile phone number on the LongCat API Platform?
+
+A: Mainland China users who do not receive the verification code can call the customer service hotline at 1010-7888 for assistance. Users outside Mainland China can switch to email login. If you still do not receive the verification code, please contact us by email at longcat-team@meituan.com.
+
+Authentication & API Keys
+Q: How do I get an API Key?
+
+A: After registering and logging in, go to the API Keys page and click “Create API Key” to manually generate a key. You can set a custom name (2–50 characters, supporting letters, numbers, and specific symbols). After creation, you can view the key’s name, status, creation time, and update time, and manage its enable/disable state.
+
+Q: How many API Keys can I create?
+
+A: Each user can create up to 3 active (enabled) API Keys, with a maximum total of 10 keys. Once the limit is reached, new keys cannot be created.
+
+Q: Can I purchase additional API Key token quota?
+
+A: No, the platform is currently in the public beta phase and does not support paid quota purchases.
+
+Q: What should I do if my token quota is insufficient?
+
+A: Before applying for a quota increase, please ensure that you have created an API Key. You can visit the Usage page to apply for an increase in your free Tokens quota. Upon approval, your free quota will be raised to 5,000,000 Tokens/day(Note: This quota increase applies only to the LongCat-Flash-Chat,LongCat-Flash-Thinking, and LongCat-Flash-Thinking-2601 models; the LongCat-Flash-Lite model is not eligible for quota upgrades.). For additional quota, please contact us by email at longcat-team@meituan.com. Please provide any API Key under your account in the email so that we can process your request promptly.
+
+Q: Where do I put my API Key?
+
+A: Include your API Key in the Authorization header: Authorization: Bearer YOUR_API_KEY
+
+Q: Do I need separate API Keys for different models?
+
+A: No, you only need one LongCat API Platform API Key to access our LongCat series model service.
+
+Q: Can I use the same API Key for both OpenAI and Anthropic endpoints?
+
+A: Yes, the same LongCat-Flash-Chat API Key works for both /openai/ and /anthropic/ endpoints.
+
+Q: My API Key isn't working, what should I check?
+
+A: Verify that:
+
+The API Key is correctly formatted with "Bearer " prefix
+You're using the correct base URL
+Your account has sufficient quota (Free tokens provided daily, paid recharge not currently available)
+Request Format & Parameters
+Q: What's the difference between the OpenAI and Anthropic endpoints?
+
+A:
+
+OpenAI endpoint (/openai/native/chat/completions) follows OpenAI's format with system/user/assistant roles
+Anthropic endpoint (/anthropic/v1/messages) follows Claude's format with separate system parameter
+Choose based on which format you prefer to use
+Q: How do I enable streaming responses?
+
+A: Set "stream": true in your request body. The response will be returned as Server-Sent Events (SSE).
+
+Q: What's the maximum token limit?
+
+A:
+
+LongCat-Flash-Chat / LongCat-Flash-Thinking / LongCat-Flash-Thinking-2601 outputs tokens up to 256k
+LongCat-Flash-Lite outputs tokens up to 320k
+Error Handling
+Q: What causes a 401 Unauthorized error?
+
+A: This typically means:
+
+Missing or invalid API Key
+Incorrect Authorization header format
+Q: What causes a 429 Rate Limit error?
+
+A: You're sending requests too quickly. Implement exponential backoff and retry logic, or reduce your request rate.
+
+Q: What causes a 400 Bad Request error?
+
+A: Check that:
+
+Your JSON is properly formatted
+All required parameters are included
+Parameter values are within valid ranges
+Message format matches the endpoint requirements
+Q: What does "context_length_exceeded" mean?
+
+A: Your input (messages + max_tokens) exceeds the model's maximum context window. Try:
+
+Reducing the number of messages
+Shortening message content
+Reducing max_tokens parameter
+SDK Integration
+Q: Can I use the official OpenAI Python SDK?
+
+A: Yes, just change the base URL:
+
+openai.api_base = "https://api.longcat.chat/openai/"
+Q: Can I use the official Anthropic Python SDK?
+
+A: Yes, configure the base URL:
+
+client = anthropic.Anthropic(base_url="https://api.longcat.chat/anthropic")
+Q: Do I need to modify my existing code?
+
+A: Minimal changes required - usually just updating the base URL and API Key. The request/response formats remain compatible.
+
+Performance
+Q: How fast are the responses?
+
+A: Response times depend on:
+
+Request length and complexity
+Server load and geographic location
+Whether you're using streaming or non-streaming
+Q: Is there a rate limit?
+
+A: Yes, rate limits are enforced per API Key. When exceeded, you'll receive a 429 status code.
+
+Q: How do I handle timeouts?
+
+A: Implement proper timeout handling in your client:
+
+Set reasonable connection and read timeouts
+Use exponential backoff for retries
+Consider using streaming for long responses
+Troubleshooting
+Q: My streaming response was suddenly interrupted. What should I do?
+
+A: Check:
+
+Network connectivity issues
+Client timeout settings
+Server-side processing limits
+Proper SSE parsing in your client
+Q: How can I debug request/response issues?
+
+A:
+
+Enable detailed logging in your HTTP client
+Check response headers for additional error information
+Verify request format matches our documentation exactly
+Test with simple requests first, then add complexity
+Common Integration Patterns
+Q: How do I monitor API usage?
+
+A: Implement logging and monitoring:
+
+Log request/response times
+Track token usage
+Monitor error rates
+Set up alerts for quota limits
+Last Updated: 2/9/26, 5:21 PM
+Contributors: zhuqi09, wb_changzhe02
+ Prev
+OpenClaw Configuration
+Next 
+Change Log
+
