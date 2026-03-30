@@ -7,6 +7,7 @@ import { logger } from "./logger.js";
 const DATA_DIR = path.join(process.cwd(), "data", "cases");
 
 export type RoleController = "user" | "ai";
+export type LegalSystem = "general" | "indian" | "us_federal" | "uk";
 export type CourtPhase =
   | "opening_statements"
   | "prosecution_case"
@@ -56,6 +57,7 @@ export type CaseSession = {
   caseId: string;
   title: string;
   caseText: string;
+  legalSystem: LegalSystem;
   phase: CourtPhase;
   roles: RoleAssignment;
   transcript: TranscriptEntry[];
@@ -89,6 +91,7 @@ export async function loadCase(caseId: string): Promise<CaseSession | null> {
     return {
       persons: [],
       activeWitness: null,
+      legalSystem: "general",
       ...parsed,
     } as CaseSession;
   } catch (err) {
@@ -136,7 +139,8 @@ export async function listCases(): Promise<
 export function createNewCase(
   title: string,
   caseText: string,
-  roles: RoleAssignment
+  roles: RoleAssignment,
+  legalSystem: LegalSystem = "general"
 ): CaseSession {
   const caseId = randomUUID();
   const now = new Date().toISOString();
@@ -154,6 +158,7 @@ export function createNewCase(
     caseId,
     title,
     caseText,
+    legalSystem,
     phase: "opening_statements",
     roles,
     transcript: [openingEntry],

@@ -12,7 +12,7 @@ import {
   useLiveCase, useChatScroll, useCourtStream, useWitnessActions,
   useUpdateRoles, useUpdatePhase, useAddDevelopment,
 } from "@/hooks/use-courtroom";
-import type { CourtPhase, TranscriptEntry, CasePerson, ActiveWitness } from "@workspace/api-client-react";
+import type { CourtPhase, TranscriptEntry, CasePerson, ActiveWitness, LegalSystem } from "@workspace/api-client-react";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,6 +29,13 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { TranscriptEntryCard } from "@/components/TranscriptEntryCard";
 import { TypingIndicator } from "@/components/TypingIndicator";
+
+const LEGAL_SYSTEM_META: Record<string, { flag: string; label: string }> = {
+  general: { flag: "⚖️", label: "General" },
+  indian: { flag: "🇮🇳", label: "Indian Law" },
+  us_federal: { flag: "🇺🇸", label: "US Federal" },
+  uk: { flag: "🇬🇧", label: "UK Common Law" },
+};
 
 const PHASE_LABELS: Record<string, string> = {
   opening_statements: "Opening Statements",
@@ -214,6 +221,7 @@ export default function Courtroom() {
   };
 
   const phaseLabel = PHASE_LABELS[session.phase] ?? session.phase.replace(/_/g, " ");
+  const legalMeta = LEGAL_SYSTEM_META[session.legalSystem ?? "general"] ?? LEGAL_SYSTEM_META.general;
 
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden relative">
@@ -234,6 +242,10 @@ export default function Courtroom() {
           </h1>
           <Badge variant="outline" className="ml-2 bg-white/5 border-white/10 text-primary font-semibold tracking-wider shrink-0">
             {phaseLabel.toUpperCase()}
+          </Badge>
+          <Badge variant="outline" className="ml-1 bg-white/5 border-white/10 text-white/60 font-medium shrink-0 gap-1.5">
+            <span>{legalMeta.flag}</span>
+            <span className="hidden sm:inline">{legalMeta.label}</span>
           </Badge>
         </div>
 

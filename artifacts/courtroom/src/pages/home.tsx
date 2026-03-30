@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
+import type { LegalSystem } from "@workspace/api-client-react";
 
 const PHASE_LABELS: Record<string, string> = {
   opening_statements: "Opening Statements",
@@ -20,6 +21,13 @@ const PHASE_LABELS: Record<string, string> = {
   verdict: "Verdict",
   concluded: "Concluded",
 };
+
+const LEGAL_SYSTEMS: Array<{ value: LegalSystem; flag: string; label: string; description: string }> = [
+  { value: "general", flag: "⚖️", label: "General", description: "Standard adversarial system" },
+  { value: "indian", flag: "🇮🇳", label: "Indian Law", description: "BNS 2023 · BNSS 2023 · BSA 2023" },
+  { value: "us_federal", flag: "🇺🇸", label: "US Federal", description: "FRCrP · FRE · Title 18" },
+  { value: "uk", flag: "🇬🇧", label: "UK Common Law", description: "Crown Court · CrimPR 2020 · PACE" },
+];
 
 export default function Home() {
   const [, navigate] = useLocation();
@@ -32,6 +40,7 @@ export default function Home() {
   const [title, setTitle] = useState("");
   const [caseText, setCaseText] = useState("");
   const [roles, setRoles] = useState({ judge: false, prosecutor: false, defense: false });
+  const [legalSystem, setLegalSystem] = useState<LegalSystem>("general");
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const handleStartSession = async (e: React.FormEvent) => {
@@ -45,6 +54,7 @@ export default function Home() {
         data: {
           title,
           caseText,
+          legalSystem,
           roles: {
             judge: roles.judge ? "user" : "ai",
             prosecutor: roles.prosecutor ? "user" : "ai",
@@ -151,6 +161,38 @@ export default function Home() {
                   />
                 </div>
 
+                {/* Legal System Selector */}
+                <div className="p-6 bg-black/30 rounded-2xl border border-white/5 space-y-4">
+                  <div className="flex items-center space-x-3 mb-1">
+                    <Scale className="w-5 h-5 text-primary" />
+                    <h3 className="text-xl font-display font-semibold">Legal System</h3>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Select the jurisdiction. The AI will cite relevant statutes, follow procedural rules, and argue within that legal framework.
+                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+                    {LEGAL_SYSTEMS.map((sys) => (
+                      <button
+                        key={sys.value}
+                        type="button"
+                        onClick={() => setLegalSystem(sys.value)}
+                        className={`p-3 rounded-xl border text-left transition-all duration-200 ${
+                          legalSystem === sys.value
+                            ? "bg-primary/15 border-primary/50 shadow-[0_0_20px_rgba(212,175,55,0.15)]"
+                            : "bg-white/3 border-white/5 hover:border-white/15 hover:bg-white/5"
+                        }`}
+                      >
+                        <div className="text-2xl mb-2">{sys.flag}</div>
+                        <div className={`text-sm font-bold ${legalSystem === sys.value ? "text-primary" : "text-white/80"}`}>
+                          {sys.label}
+                        </div>
+                        <div className="text-[10px] text-white/40 mt-0.5 leading-tight">{sys.description}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Role Assignments */}
                 <div className="p-6 bg-black/30 rounded-2xl border border-white/5 space-y-6">
                   <div className="flex items-center space-x-3 mb-2">
                     <Settings2 className="w-5 h-5 text-primary" />

@@ -1,4 +1,4 @@
-import type { CaseSession, TranscriptEntry } from "./memory.js";
+import type { CaseSession, TranscriptEntry, LegalSystem } from "./memory.js";
 
 const PHASE_DESCRIPTIONS: Record<string, string> = {
   opening_statements: "Opening Statements — Both sides present their opening arguments to the court.",
@@ -26,6 +26,151 @@ const SPEAKER_LABELS: Record<string, string> = {
 };
 
 const MAX_TRANSCRIPT_ENTRIES = 30;
+
+export const LEGAL_SYSTEM_META: Record<LegalSystem, { label: string; flag: string; description: string }> = {
+  general: {
+    label: "General (Adversarial)",
+    flag: "⚖️",
+    description: "Standard adversarial courtroom system",
+  },
+  indian: {
+    label: "Indian Law",
+    flag: "🇮🇳",
+    description: "BNS 2023, BNSS 2023, Bharatiya Sakshya Adhiniyam 2023",
+  },
+  us_federal: {
+    label: "US Federal Law",
+    flag: "🇺🇸",
+    description: "Title 18 US Code, Federal Rules of Criminal Procedure & Evidence",
+  },
+  uk: {
+    label: "UK Common Law",
+    flag: "🇬🇧",
+    description: "Crown Court, Criminal Procedure Rules 2020, PACE 1984",
+  },
+};
+
+function buildLegalSystemContext(legalSystem: LegalSystem): string {
+  if (legalSystem === "general" || !legalSystem) return "";
+
+  const rules: Record<Exclude<LegalSystem, "general">, string> = {
+    indian: `
+GOVERNING LEGAL FRAMEWORK — INDIAN LAW:
+This trial is conducted under Indian law. Adhere strictly to the following:
+
+STATUTES IN FORCE:
+- Bharatiya Nyaya Sanhita (BNS) 2023 — replaced the Indian Penal Code (IPC) 1860
+  (Note: for cases prior to July 2024, IPC sections may apply — use context to determine)
+- Bharatiya Nagarik Suraksha Sanhita (BNSS) 2023 — replaced CrPC 1973
+- Bharatiya Sakshya Adhiniyam (BSA) 2023 — replaced the Indian Evidence Act 1872
+
+KEY PROCEDURAL RULES (BNSS):
+- Charges are framed by the Sessions Judge after examining the case file
+- Prosecution leads evidence first; defense follows
+- Witnesses are examined-in-chief, cross-examined, and may be re-examined
+- Accused has the right to remain silent (Section 351 BNSS); silence cannot be used as evidence of guilt
+- Bail applications, discharge applications, and framing of charges are procedural milestones
+- Judgments must state reasons; benefit of the doubt goes to the accused
+
+KEY EVIDENCE RULES (BSA / Indian Evidence Act):
+- Hearsay is generally inadmissible; confessions to police are not admissible as evidence (Section 23 BSA)
+- Dying declarations are admissible (Section 26 BSA)
+- Circumstantial evidence must form a complete chain pointing only to guilt
+- Standard of proof: beyond reasonable doubt
+
+COMMON SECTIONS TO CITE:
+- BNS 101 (murder), BNS 105 (culpable homicide not amounting to murder)
+- BNS 303 (theft), BNS 308 (extortion), BNS 318 (cheating)
+- BNS 109 (abetment), BNS 61 (criminal conspiracy)
+- BNSS 169 (police report), BNSS 230 (charge framing)
+- BSA 57 (burden of proof), BSA 116 (presumption of innocence)
+
+COURT HIERARCHY: Trial Court (Sessions) → High Court → Supreme Court of India`,
+
+    us_federal: `
+GOVERNING LEGAL FRAMEWORK — UNITED STATES FEDERAL LAW:
+This trial is conducted under US Federal law. Adhere strictly to the following:
+
+STATUTES IN FORCE:
+- United States Code, Title 18 (federal criminal offenses)
+- Federal Rules of Criminal Procedure (FRCrP)
+- Federal Rules of Evidence (FRE)
+
+KEY CONSTITUTIONAL RIGHTS:
+- 4th Amendment: Protection against unreasonable search and seizure; evidence obtained illegally may be suppressed (exclusionary rule)
+- 5th Amendment: Right against self-incrimination; defendant cannot be compelled to testify; grand jury indictment required for serious crimes
+- 6th Amendment: Right to speedy trial, impartial jury, right to confront witnesses, right to counsel
+- 8th Amendment: No cruel and unusual punishment
+
+KEY PROCEDURAL RULES (FRCrP):
+- Grand jury indictment or information required to charge a federal felony
+- Arraignment: defendant enters a plea (guilty, not guilty, nolo contendere)
+- Voir dire: jury selection process; both sides may challenge jurors for cause or use peremptory strikes
+- Opening statements → Government's case → Defense case → Closing arguments → Jury deliberation
+- Judge instructs jury on the law before deliberation
+- Verdict must be unanimous in federal criminal cases
+
+KEY EVIDENCE RULES (FRE):
+- Hearsay generally inadmissible; many exceptions (FRE 803, 804)
+- Relevance required for all evidence (FRE 401-403)
+- Expert witnesses must meet Daubert standard (FRE 702)
+- Miranda warnings required before custodial interrogation; violation leads to suppression
+- Standard of proof: beyond a reasonable doubt
+
+COMMON STATUTES TO CITE:
+- 18 U.S.C. § 1111 (murder), § 1113 (attempted murder)
+- 18 U.S.C. § 1341 (mail fraud), § 1343 (wire fraud)
+- 21 U.S.C. § 841 (drug trafficking)
+- 18 U.S.C. § 922 (firearms offenses)
+
+COURT HIERARCHY: US District Court → US Court of Appeals (Circuit) → US Supreme Court`,
+
+    uk: `
+GOVERNING LEGAL FRAMEWORK — UNITED KINGDOM COMMON LAW (ENGLAND & WALES):
+This trial is conducted in a Crown Court under English law. Adhere strictly to the following:
+
+STATUTES AND RULES IN FORCE:
+- Criminal Procedure Rules 2020 (CrimPR)
+- Police and Criminal Evidence Act 1984 (PACE) and Codes of Practice
+- Criminal Justice Act 2003 (CJA 2003)
+- Prosecution of Offences Act 1985
+- Common law principles and precedent
+
+KEY PROCEDURAL RULES:
+- Crown Court hears indictable offences and either-way offences committed for trial
+- Case begins with the indictment read to the defendant; plea entered
+- Prosecution opens its case; presents witnesses and evidence
+- Defence may submit 'no case to answer' at the close of prosecution case (half-time submission)
+- Defence presents its case, then closing speeches; prosecution goes first in Crown Court
+- Judge sums up to the jury; jury deliberates in private; majority verdict (10-2) acceptable after sufficient deliberation
+- Defendant has a right not to testify (Criminal Justice and Public Order Act 1994 — adverse inference may be drawn from silence in some circumstances)
+
+KEY EVIDENCE RULES (CJA 2003 & PACE):
+- Hearsay admissible under statutory gateways (CJA 2003 ss.114-127)
+- Bad character evidence admissible under gateways (CJA 2003 ss.101-112)
+- Confessions obtained by oppression or unreliable means excluded (PACE s.76)
+- Unlawfully obtained evidence may be excluded (PACE s.78)
+- Expert evidence must comply with CrimPR Part 19 (duties to the court)
+- Standard of proof: beyond reasonable doubt ("so that you are sure")
+
+COMMON STATUTES TO CITE:
+- Homicide Act 1957 (murder, manslaughter, diminished responsibility)
+- Theft Act 1968 (theft, robbery, burglary)
+- Fraud Act 2006 (fraud by false representation, abuse of position)
+- Misuse of Drugs Act 1971 (drug offences)
+- Serious Crime Act 2015 (organised crime, conspiracy)
+- Sexual Offences Act 2003
+
+ROLES IN CROWN COURT:
+- His/Her Honour Judge [Name] presiding
+- Crown Prosecution Service (CPS) — referred to as "The Crown" or "Prosecution"
+- Defence counsel — referred to as "Defence" or "Learned Friend"
+
+COURT HIERARCHY: Crown Court → Court of Appeal (Criminal Division) → UK Supreme Court`,
+  };
+
+  return `\n${rules[legalSystem as Exclude<LegalSystem, "general">] ?? ""}`;
+}
 
 export function formatTranscript(transcript: TranscriptEntry[]): string {
   if (transcript.length === 0) {
@@ -59,8 +204,10 @@ function buildCaseContext(session: CaseSession): string {
           .join("\n\n")}`
       : "";
 
-  return `CASE TITLE: ${session.title}
+  const legalContext = buildLegalSystemContext(session.legalSystem ?? "general");
 
+  return `CASE TITLE: ${session.title}
+${legalContext}
 CASE FILE / CHARGE SHEET:
 ${session.caseText}${developments}`;
 }

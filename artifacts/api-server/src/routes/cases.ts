@@ -9,6 +9,7 @@ import {
   addTranscriptEntry,
   type RoleAssignment,
   type CourtPhase,
+  type LegalSystem,
 } from "../lib/memory.js";
 import { PHASE_LABELS } from "../lib/prompts.js";
 import { extractPersonsFromText, mergePersons } from "../lib/aiEngine.js";
@@ -24,10 +25,11 @@ router.get("/cases", async (req, res) => {
 });
 
 router.post("/cases", async (req, res) => {
-  const { title, caseText, roles } = req.body as {
+  const { title, caseText, roles, legalSystem } = req.body as {
     title?: string;
     caseText?: string;
     roles?: RoleAssignment;
+    legalSystem?: LegalSystem;
   };
 
   if (!title || !caseText || !roles) {
@@ -42,7 +44,12 @@ router.post("/cases", async (req, res) => {
     return;
   }
 
-  const session = createNewCase(title, caseText, roles);
+  const validLegalSystems: LegalSystem[] = ["general", "indian", "us_federal", "uk"];
+  const resolvedLegalSystem: LegalSystem = legalSystem && validLegalSystems.includes(legalSystem)
+    ? legalSystem
+    : "general";
+
+  const session = createNewCase(title, caseText, roles, resolvedLegalSystem);
   await saveCase(session);
 
   extractPersonsFromText(caseText)

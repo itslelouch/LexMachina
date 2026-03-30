@@ -25,6 +25,15 @@ export const RoleController = {
   ai: "ai",
 } as const;
 
+export type LegalSystem = (typeof LegalSystem)[keyof typeof LegalSystem];
+
+export const LegalSystem = {
+  general: "general",
+  indian: "indian",
+  us_federal: "us_federal",
+  uk: "uk",
+} as const;
+
 export type CourtPhase = (typeof CourtPhase)[keyof typeof CourtPhase];
 
 export const CourtPhase = {
@@ -97,6 +106,7 @@ export interface CaseSession {
   caseId: string;
   title: string;
   caseText: string;
+  legalSystem: LegalSystem;
   phase: CourtPhase;
   roles: RoleAssignment;
   transcript: TranscriptEntry[];
@@ -122,6 +132,7 @@ export interface CreateCaseRequest {
   title: string;
   caseText: string;
   roles: RoleAssignment;
+  legalSystem?: LegalSystem;
 }
 
 export interface UpdateRolesRequest {
