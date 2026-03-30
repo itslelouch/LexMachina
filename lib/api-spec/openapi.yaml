@@ -1,22 +1,24 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Courtroom AI Simulator API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: cases
+    description: Case management
+  - name: courtroom
+    description: Courtroom proceedings
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +26,277 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /cases:
+    get:
+      operationId: listCases
+      tags: [cases]
+      summary: List all cases
+      responses:
+        "200":
+          description: List of cases
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CaseListResponse"
+    post:
+      operationId: createCase
+      tags: [cases]
+      summary: Create a new case
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCaseRequest"
+      responses:
+        "201":
+          description: Case created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CaseSession"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /cases/{caseId}:
+    get:
+      operationId: getCase
+      tags: [cases]
+      summary: Get case session
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Case session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CaseSession"
+        "404":
+          description: Case not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteCase
+      tags: [cases]
+      summary: Delete case
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /cases/{caseId}/roles:
+    put:
+      operationId: updateRoles
+      tags: [cases]
+      summary: Update role assignments
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRolesRequest"
+      responses:
+        "200":
+          description: Roles updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CaseSession"
+        "404":
+          description: Case not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /cases/{caseId}/speak:
+    post:
+      operationId: speak
+      tags: [courtroom]
+      summary: User speaks as their role
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SpeakRequest"
+      responses:
+        "200":
+          description: Statement recorded and AI responses generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SpeakResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Case not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /cases/{caseId}/ai-turn:
+    post:
+      operationId: triggerAiTurn
+      tags: [courtroom]
+      summary: Trigger AI to speak for a specific role
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AiTurnRequest"
+      responses:
+        "200":
+          description: AI statement generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiTurnResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Case not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /cases/{caseId}/auto-proceed:
+    post:
+      operationId: autoProceed
+      tags: [courtroom]
+      summary: Auto-proceed all AI roles in sequence
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: All AI roles have spoken
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AutoProceedResponse"
+        "404":
+          description: Case not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /cases/{caseId}/developments:
+    post:
+      operationId: addDevelopment
+      tags: [cases]
+      summary: Add a case development
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddDevelopmentRequest"
+      responses:
+        "200":
+          description: Development added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CaseSession"
+        "404":
+          description: Case not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /cases/{caseId}/phase:
+    put:
+      operationId: updatePhase
+      tags: [courtroom]
+      summary: Update the current phase of proceedings
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePhaseRequest"
+      responses:
+        "200":
+          description: Phase updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CaseSession"
+        "404":
+          description: Case not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +307,260 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+      required:
+        - success
+
+    RoleController:
+      type: string
+      enum: [user, ai]
+
+    CourtPhase:
+      type: string
+      enum:
+        - opening_statements
+        - prosecution_case
+        - defense_case
+        - closing_arguments
+        - verdict
+        - concluded
+
+    RoleAssignment:
+      type: object
+      properties:
+        judge:
+          $ref: "#/components/schemas/RoleController"
+        prosecutor:
+          $ref: "#/components/schemas/RoleController"
+        defense:
+          $ref: "#/components/schemas/RoleController"
+      required:
+        - judge
+        - prosecutor
+        - defense
+
+    TranscriptEntry:
+      type: object
+      properties:
+        id:
+          type: string
+        role:
+          type: string
+          enum: [judge, prosecutor, defense, system]
+        speaker:
+          type: string
+        content:
+          type: string
+        timestamp:
+          type: string
+        controlledBy:
+          type: string
+          enum: [user, ai, system]
+      required:
+        - id
+        - role
+        - speaker
+        - content
+        - timestamp
+        - controlledBy
+
+    Development:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        content:
+          type: string
+        timestamp:
+          type: string
+      required:
+        - id
+        - title
+        - content
+        - timestamp
+
+    CaseSession:
+      type: object
+      properties:
+        caseId:
+          type: string
+        title:
+          type: string
+        caseText:
+          type: string
+        phase:
+          $ref: "#/components/schemas/CourtPhase"
+        roles:
+          $ref: "#/components/schemas/RoleAssignment"
+        transcript:
+          type: array
+          items:
+            $ref: "#/components/schemas/TranscriptEntry"
+        developments:
+          type: array
+          items:
+            $ref: "#/components/schemas/Development"
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - caseId
+        - title
+        - caseText
+        - phase
+        - roles
+        - transcript
+        - developments
+        - createdAt
+        - updatedAt
+
+    CaseListResponse:
+      type: object
+      properties:
+        cases:
+          type: array
+          items:
+            type: object
+            properties:
+              caseId:
+                type: string
+              title:
+                type: string
+              phase:
+                $ref: "#/components/schemas/CourtPhase"
+              createdAt:
+                type: string
+            required:
+              - caseId
+              - title
+              - phase
+              - createdAt
+      required:
+        - cases
+
+    CreateCaseRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        caseText:
+          type: string
+        roles:
+          $ref: "#/components/schemas/RoleAssignment"
+      required:
+        - title
+        - caseText
+        - roles
+
+    UpdateRolesRequest:
+      type: object
+      properties:
+        roles:
+          $ref: "#/components/schemas/RoleAssignment"
+      required:
+        - roles
+
+    SpeakRequest:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [judge, prosecutor, defense]
+        content:
+          type: string
+        triggerAiResponses:
+          type: boolean
+      required:
+        - role
+        - content
+
+    SpeakResponse:
+      type: object
+      properties:
+        userEntry:
+          $ref: "#/components/schemas/TranscriptEntry"
+        aiResponses:
+          type: array
+          items:
+            $ref: "#/components/schemas/TranscriptEntry"
+        updatedTranscript:
+          type: array
+          items:
+            $ref: "#/components/schemas/TranscriptEntry"
+      required:
+        - userEntry
+        - aiResponses
+        - updatedTranscript
+
+    AiTurnRequest:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [judge, prosecutor, defense]
+        context:
+          type: string
+      required:
+        - role
+
+    AiTurnResponse:
+      type: object
+      properties:
+        entry:
+          $ref: "#/components/schemas/TranscriptEntry"
+        updatedTranscript:
+          type: array
+          items:
+            $ref: "#/components/schemas/TranscriptEntry"
+      required:
+        - entry
+        - updatedTranscript
+
+    AutoProceedResponse:
+      type: object
+      properties:
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/TranscriptEntry"
+        updatedTranscript:
+          type: array
+          items:
+            $ref: "#/components/schemas/TranscriptEntry"
+      required:
+        - entries
+        - updatedTranscript
+
+    AddDevelopmentRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+      required:
+        - title
+        - content
+
+    UpdatePhaseRequest:
+      type: object
+      properties:
+        phase:
+          $ref: "#/components/schemas/CourtPhase"
+      required:
+        - phase

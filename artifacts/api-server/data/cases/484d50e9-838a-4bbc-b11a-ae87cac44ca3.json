@@ -1,0 +1,48 @@
+{
+  "caseId": "484d50e9-838a-4bbc-b11a-ae87cac44ca3",
+  "title": "Test Case",
+  "caseText": "This is a test case.",
+  "phase": "opening_statements",
+  "roles": {
+    "judge": "ai",
+    "prosecutor": "ai",
+    "defense": "ai"
+  },
+  "transcript": [
+    {
+      "id": "0b9b63b3-d9d9-477b-82e0-ff6bc51b8720",
+      "role": "system",
+      "speaker": "Court",
+      "content": "Court is now in session. The Honorable Judge presiding. This is the matter of: Test Case. All parties are present. Proceedings will begin with Opening Statements.",
+      "timestamp": "2026-03-30T05:12:07.077Z",
+      "controlledBy": "system"
+    },
+    {
+      "id": "878c9a6d-10d3-469f-b593-047b1536d416",
+      "role": "judge",
+      "speaker": "The Honorable Judge",
+      "content": "This court is now in session. We are here on the matter of *Test Case*. All parties are present, and the record reflects that both the Prosecution and Defense are prepared to proceed.\n\nWe begin today with Opening Statements. The purpose of this phase is to provide the court with a clear and concise overview of each side’s theory of the case. Counsel will outline what they intend to prove through evidence and witness testimony, but remember—these statements are not evidence in themselves.\n\nProsecution, you may begin your opening statement.",
+      "timestamp": "2026-03-30T05:12:22.692Z",
+      "controlledBy": "ai"
+    },
+    {
+      "id": "381a27fd-b4f8-454b-b7ea-885825bd091f",
+      "role": "judge",
+      "speaker": "The Honorable Judge",
+      "content": "Order! The Prosecution has concluded its opening statement. The court now turns to the Defense.\n\nCounsel for the Defense, you may proceed with your opening statement. Please present your theory of the case clearly and concisely. Remember, this is your opportunity to outline the evidence and testimony you intend to offer, but again—these remarks are not evidence themselves. The floor is yours.",
+      "timestamp": "2026-03-30T05:12:29.411Z",
+      "controlledBy": "ai"
+    },
+    {
+      "id": "7feaf5c9-515a-495d-9a16-8fed2f705d19",
+      "role": "judge",
+      "speaker": "The Honorable Judge",
+      "content": "The Defense has now concluded its opening statement. The court acknowledges both sides for their clear and professional presentations.\n\nWe now proceed to the evidentiary phase of these proceedings. The Prosecution will present its case first, beginning with the calling of witnesses and the introduction of any exhibits into evidence. \n\nProsecution, you may call your first witness and proceed with direct examination.",
+      "timestamp": "2026-03-30T05:12:35.179Z",
+      "controlledBy": "ai"
+    }
+  ],
+  "developments": [],
+  "createdAt": "2026-03-30T05:12:07.077Z",
+  "updatedAt": "2026-03-30T05:12:35.179Z"
+}

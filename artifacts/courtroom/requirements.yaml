@@ -1,0 +1,18 @@
+packages:
+  "framer-motion": "For stunning page transitions, message entry animations, and smooth layout changes in the courtroom"
+  "date-fns": "For formatting transcript timestamps cleanly"
+  "clsx": "For merging conditional Tailwind classes"
+  "tailwind-merge": "For safely overriding tailwind utility classes in custom components"
+  "@hookform/resolvers": "For Zod schema validation in forms"
+
+images:
+  - path: "artifacts/courtroom/public/images/courtroom-bg.png"
+    description: "A breathtaking, highly stylized digital art background of a dark, futuristic courtroom. Deep navy blue atmosphere with volumetric golden light beams filtering from high windows. Elegant, authoritative, and cinematic."
+    aspect_ratio: "16:9"
+  - path: "artifacts/courtroom/public/images/logo.png"
+    description: "A minimalist, premium vector logo combining a modern scales of justice and a subtle digital/AI circuit motif. Glowing gold on a dark navy background."
+    aspect_ratio: "1:1"
+
+notes:
+  - "The app uses generated TanStack query hooks from @workspace/api-client-react."
+  - "Assuming shadcn/ui components exist in @/components/ui/ based on the directory structure."
