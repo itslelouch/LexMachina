@@ -27,8 +27,8 @@
   "demeanor": "aggressive",
   "evidence": [],
   "jurySentiment": {
-    "prosecution": 52,
-    "defense": 28,
+    "prosecution": 66,
+    "defense": 16,
     "neutral": 20
   },
   "caseId": "7f1cce45-ece1-4302-b0a3-d416cb26dfb5",
@@ -36,7 +36,7 @@
   "caseText": "CASE FILE: State vs Ravinder\nCourt: Sessions Court, Delhi\nFIR No: 525/2016\nPolice Station: Anand Parbat, Delhi\nDate of FIR: 04 December 2016\nINCIDENT SUMMARY:\nVictim Deepak was found unconscious with severe head injuries near Nehru Nagar, Anand Parbat, Delhi. A PCR call led police to the scene, and the victim was taken to LHMC Hospital. Initial investigation suggests a quarrel between the accused Ravinder and the victim at a marriage function that escalated into physical assault.\nACCUSED:\nRavinder – allegedly involved in assault leading to fatal injuries\nIPC Sections Alleged: 307 IPC (Attempt to Murder), later upgraded to 302 IPC (Murder) after victim succumbed\nEVIDENCE COLLECTED BY POLICE:\nWitness statement of victim’s brother (saw accused near the scene).\nPostmortem examination in hospital (cause: blunt force trauma to head).\nClothes seized from accused with blood stains (sent to FSL).\nAccused interrogation notes.\nTimeline of incident and initial hospital report.\nWITNESSES:\nDinesh Sharma (victim’s brother) – eyewitness to events leading to injury\nHospital staff at LHMC – treated victim on arrival\nPolice officers present at initial scene\nCHARGESHEET / COURT ENTRY:\nInvestigating Officer filed chargesheet under Section 302 IPC (Murder)\nCourt received the charge sheet and summoned accused Ravinder\nAccused pleaded not guilty",
   "phase": "pre_trial_motions",
   "roles": {
-    "judge": "user",
+    "judge": "ai",
     "prosecutor": "ai",
     "defense": "ai"
   },
@@ -96,9 +96,97 @@
       "content": "Your Honor, the State is prepared to move forward with this trial and prove beyond a reasonable doubt that the accused, Ravinder, intentionally assaulted the deceased, Deepak, resulting in fatal blunt force trauma to the head. The evidence is clear and compelling: an eyewitness account from the victim’s brother placing the accused at the scene, forensic analysis confirming bloodstains on the accused’s clothing, and a postmortem report conclusively linking the injuries to the altercation. We respectfully submit that there is no basis for delay or suppression—justice demands that the accused answer for this brutal and fatal attack.",
       "timestamp": "2026-03-30T07:28:32.238Z",
       "controlledBy": "ai"
+    },
+    {
+      "id": "86f11dd5-94e7-418d-a5db-ac41f2a7f965",
+      "role": "judge",
+      "speaker": "The Honorable Judge",
+      "content": "Ok , sent this to 10 days remand",
+      "timestamp": "2026-03-30T07:29:22.132Z",
+      "controlledBy": "user"
+    },
+    {
+      "id": "743ddb38-58f8-4b02-9661-c2b4de65caf1",
+      "role": "prosecutor",
+      "speaker": "Prosecution Counsel",
+      "content": "Your Honor, the State stands ready to proceed with this trial and prove beyond a reasonable doubt that the accused, Ravinder, intentionally caused the death of Deepak through a brutal assault with blunt force trauma to the head. The evidence is overwhelming: an eyewitness account from the victim’s brother, Dinesh Sharma, who saw the accused at the scene immediately before the attack, forensic confirmation of bloodstains on the accused’s clothing, and a postmortem report conclusively attributing death to injuries consistent with the altercation. There is no legal or factual justification for delay—justice demands that the accused be held fully accountable for this heinous crime.",
+      "timestamp": "2026-03-30T07:29:27.255Z",
+      "controlledBy": "ai"
+    },
+    {
+      "id": "d066e01c-748c-4836-833d-885909669616",
+      "role": "judge",
+      "speaker": "The Honorable Judge",
+      "content": "He has already sent to jail",
+      "timestamp": "2026-03-30T07:29:45.787Z",
+      "controlledBy": "user"
+    },
+    {
+      "id": "d76c37c0-4611-4e82-8648-64c804250b23",
+      "role": "prosecutor",
+      "speaker": "Prosecution Counsel",
+      "content": "Your Honor, the State firmly asserts that the accused, Ravinder, must remain in judicial custody as we proceed toward trial—there is no justification for bail given the gravity of the offense under Section 302 IPC and the clear, corroborated evidence against him. The eyewitness testimony of Dinesh Sharma, the victim’s brother, places the accused at the scene of the brutal assault, while forensic evidence confirms his blood-stained clothing and the postmortem report conclusively establishes death by blunt force trauma inflicted during the altercation. To release the accused now would not only undermine the administration of justice but also pose a serious risk to public safety.",
+      "timestamp": "2026-03-30T07:29:51.098Z",
+      "controlledBy": "ai"
+    },
+    {
+      "id": "ea0d092d-555d-4117-a3e3-867789e9f0e4",
+      "role": "judge",
+      "speaker": "The Honorable Judge",
+      "content": "accused, Ravinder, will remain in judicial custody",
+      "timestamp": "2026-03-30T07:30:23.175Z",
+      "controlledBy": "user"
+    },
+    {
+      "id": "152061b2-52e8-487d-b8c1-e84e56df26fd",
+      "role": "prosecutor",
+      "speaker": "Prosecution Counsel",
+      "content": "Your Honor, the State vehemently opposes any suggestion of delay or leniency in this matter—the accused, Ravinder, stands charged with the brutal murder of Deepak, and the evidence against him is not only substantial but conclusive. We have an eyewitness, Dinesh Sharma, the victim’s own brother, who directly observed the accused at the scene moments before the fatal assault; we have forensic confirmation that the accused’s clothing bore bloodstains consistent with the victim’s, and we have a postmortem report that unequivocally attributes death to blunt force trauma inflicted during that altercation. There is no doubt—this was a deliberate, violent attack, and the accused must remain in custody and face trial for this heinous crime without further delay.",
+      "timestamp": "2026-03-30T07:30:29.765Z",
+      "controlledBy": "ai"
+    },
+    {
+      "id": "0b1852d3-84c4-4c1e-b9b3-bf425bff13ea",
+      "role": "judge",
+      "speaker": "The Honorable Judge",
+      "content": "Defence council has anything to say ?",
+      "timestamp": "2026-03-30T07:30:51.710Z",
+      "controlledBy": "user"
+    },
+    {
+      "id": "4e9b7099-3b7b-43de-a5a0-9b6f238a06b1",
+      "role": "prosecutor",
+      "speaker": "Prosecution Counsel",
+      "content": "Your Honor, the State reiterates that there is no legal or factual basis to grant bail or suppress any evidence in this grave matter—the accused, Ravinder, stands charged with the brutal murder of Deepak under Section 302 IPC, supported by irrefutable eyewitness testimony from the victim’s brother, forensic evidence linking the accused to the crime scene through blood-stained clothing, and a conclusive postmortem report confirming death by blunt force trauma. The accused poses a clear flight risk and a danger to public safety, and his continued detention is both necessary and justified to ensure the integrity of the judicial process and the pursuit of justice.",
+      "timestamp": "2026-03-30T07:30:56.980Z",
+      "controlledBy": "ai"
+    },
+    {
+      "id": "2936cabf-d18c-4dd7-987d-2bfe8d5d26dc",
+      "role": "judge",
+      "speaker": "The Honorable Judge",
+      "content": "The court has reviewed the chargesheet, the evidence submitted, and the arguments presented by the prosecution. Given the gravity of the charges under Section 302 IPC and the prima facie strength of the evidence—including eyewitness testimony, forensic findings, and the postmortem report—the accused, Ravinder, shall remain in judicial custody pending trial. The court finds no merit in any pre-trial motions for dismissal or suppression at this stage; the matter will proceed to trial without delay.",
+      "timestamp": "2026-03-30T07:31:46.926Z",
+      "controlledBy": "ai"
+    },
+    {
+      "id": "ecf56f8d-5547-4382-9f35-d94c928a3ef0",
+      "role": "prosecutor",
+      "speaker": "Prosecution Counsel",
+      "content": "Your Honor, the State stands firm in its position that the accused, Ravinder, must remain in judicial custody and face trial for the brutal murder of Deepak under Section 302 IPC. The evidence is overwhelming and uncontroverted—eyewitness testimony from the victim’s brother, Dinesh Sharma, who saw the accused at the scene immediately before the assault, forensic analysis confirming bloodstains on the accused’s clothing, and a postmortem report that definitively attributes death to blunt force trauma sustained during the altercation. There is no doubt this was a deliberate, violent attack, and the accused must be held fully accountable without further delay.",
+      "timestamp": "2026-03-30T07:31:51.508Z",
+      "controlledBy": "ai"
+    },
+    {
+      "id": "41d2aa76-f662-450f-a4f3-c7acd50ef4cb",
+      "role": "defense",
+      "speaker": "Defense Counsel",
+      "content": "Your Honor, the prosecution’s reliance on circumstantial and allegedly forensic evidence is deeply flawed and insufficient to sustain a charge under Section 302 IPC. The so-called eyewitness, Dinesh Sharma, has a clear familial bias and his testimony is uncorroborated by any independent account—moreover, the alleged bloodstains on the accused’s clothing were seized without a proper chain of custody and could easily have been contaminated or misattributed. We move to suppress this evidence and demand a full forensic re-examination, as the State has failed to prove beyond reasonable doubt that my client, Ravinder, caused the fatal injuries.",
+      "timestamp": "2026-03-30T07:31:54.696Z",
+      "controlledBy": "ai"
     }
   ],
   "developments": [],
   "createdAt": "2026-03-30T07:27:26.641Z",
-  "updatedAt": "2026-03-30T07:28:32.238Z"
+  "updatedAt": "2026-03-30T07:31:54.697Z"
 }

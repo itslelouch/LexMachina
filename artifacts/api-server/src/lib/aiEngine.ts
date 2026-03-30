@@ -128,11 +128,18 @@ export async function streamNextAiResponse(
   );
   if (!nextRole) return null;
 
+  // Determine if the triggering speaker was a human player
+  const speakingRoleAssignment = speakingRole === "witness" ? "ai" : session.roles[speakingRole as Role];
+  const humanContext = speakingRoleAssignment === "user" && lastUserMessage
+    ? `The previous statement was made by a HUMAN PLAYER who may be using informal language. They said: "${lastUserMessage}". Interpret their intent charitably and respond directly to the substance of what they meant. Keep the proceedings moving.`
+    : undefined;
+
   onRoleStart(nextRole);
   const entry = await streamAiStatement(
     session,
     nextRole,
-    (token) => onToken(nextRole, token)
+    (token) => onToken(nextRole, token),
+    humanContext
   );
   onRoleEntry(nextRole, entry);
   return entry;

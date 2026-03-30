@@ -221,7 +221,8 @@ export function formatTranscript(transcript: TranscriptEntry[]): string {
   return prefix + recent
     .map((entry) => {
       const label = SPEAKER_LABELS[entry.role] ?? entry.role.toUpperCase();
-      return `[${label}]: ${entry.content}`;
+      const sourceTag = entry.source === "user" ? " [HUMAN PLAYER]" : "";
+      return `[${label}${sourceTag}]: ${entry.content}`;
     })
     .join("\n\n");
 }
@@ -262,6 +263,21 @@ If a witness, police officer, detective, expert, or any other person needs to te
 You must NEVER generate a transcript entry attributed to any person other than your role (Judge, Prosecutor, or Defense).
 All testimony, statements, and words of any other person must be QUOTED WITHIN your own statement.`;
 
+const HUMAN_PLAYER_RULE = `
+HUMAN PLAYER ACCOMMODATION — CRITICAL:
+Some parties in this courtroom are played by real humans who may not know formal legal language.
+In the transcript, their entries are marked with [HUMAN PLAYER].
+When responding to a [HUMAN PLAYER] statement:
+- ALWAYS interpret their intent charitably — understand what they are trying to argue, even if it is expressed in plain, informal, or non-legal English
+- "My client didn't do it" = a denial of guilt / assertion of innocence — treat it as a substantive defense argument
+- "The evidence is weak" = challenging the sufficiency of proof — engage with it properly
+- "The witness is lying" = an attack on credibility — respond to that substance
+- "Objection" or "I object" without a legal basis = accept it as a general objection, rule on it, and ask counsel to state their basis
+- NEVER simply ignore, repeat yourself, or say "I don't understand" — always advance the proceedings by responding to what the human clearly meant
+- Do NOT demand perfect legal language before engaging — the proceedings must continue regardless
+- If the human's point has legal merit, acknowledge and respond to it; if it is weak, counter it forcefully on the merits
+- Your goal is to keep proceedings moving and make the simulation feel real and responsive, even with informal input`;
+
 export function buildJudgeSystemPrompt(session: CaseSession): string {
   const caseContext = buildCaseContext(session);
   const phase = PHASE_DESCRIPTIONS[session.phase] ?? session.phase;
@@ -287,6 +303,7 @@ CONDUCT RULES:
 - End each statement with an indication of who should speak next or what action is expected
 - Address the court by prefacing significant rulings with "The court rules..." or "Order!"
 - DEMEANOR: ${demeanorRule}
+${HUMAN_PLAYER_RULE}
 ${WITNESS_RULE}
 
 CURRENT PHASE: ${phase}
@@ -320,6 +337,7 @@ CONDUCT RULES:
 - Never fabricate evidence; only use what is in the case file, developments, and evidence board
 - When making objections: state the legal basis (hearsay, relevance, leading question, etc.)
 - DEMEANOR: ${buildDemeanorRules(session.demeanor ?? "formal", "prosecutor")}
+${HUMAN_PLAYER_RULE}
 ${WITNESS_RULE}
 
 CURRENT PHASE: ${phase}
@@ -354,6 +372,7 @@ CONDUCT RULES:
 - When making objections: state the legal basis (hearsay, relevance, speculation, etc.)
 - Never concede ground without getting something in return
 - DEMEANOR: ${buildDemeanorRules(session.demeanor ?? "formal", "defense")}
+${HUMAN_PLAYER_RULE}
 ${WITNESS_RULE}
 
 CURRENT PHASE: ${phase}
@@ -437,7 +456,7 @@ export function buildTurnPrompt(role: string, additionalContext?: string): strin
         : "Defense Attorney";
 
   const contextNote = additionalContext
-    ? `\n\nAdditional context for this turn: ${additionalContext}`
+    ? `\n\nCONTEXT FOR THIS TURN: ${additionalContext}`
     : "";
 
   return `It is now your turn to speak as the ${roleLabel}. Based on the case file, the current phase, and the full transcript of proceedings above, deliver your statement.${contextNote}
@@ -447,5 +466,7 @@ Important:
 - Your response should be a realistic, substantive courtroom statement (2-5 sentences)
 - Do not include stage directions, internal thoughts, or meta-commentary
 - Speak naturally as you would in a real courtroom
-- Do NOT speak as or become any witness, police officer, detective, or other person`;
+- Do NOT speak as or become any witness, police officer, detective, or other person
+- NEVER simply repeat or rephrase what was already said — always advance the argument or proceedings in a new direction
+- If responding to a [HUMAN PLAYER] entry, engage directly with what they clearly intended, not the exact words`;
 }
