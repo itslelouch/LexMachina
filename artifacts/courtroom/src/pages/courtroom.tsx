@@ -125,6 +125,13 @@ export default function Courtroom() {
     return autoPlayEffect();
   }, [autoPlayEffect]);
 
+  // Auto-switch off jury tab if Indian law (no jury system)
+  useEffect(() => {
+    if ((session?.legalSystem ?? "general") === "indian" && sidebarTab === "jury") {
+      setSidebarTab("docket");
+    }
+  }, [session?.legalSystem, sidebarTab]);
+
   const handleRoleToggle = useCallback((role: Role, isUser: boolean) => {
     pendingRolesRef.current = {
       ...(pendingRolesRef.current ?? session?.roles ?? { judge: "ai", prosecutor: "ai", defense: "ai" }),
@@ -297,11 +304,6 @@ export default function Courtroom() {
   const phaseLabel = PHASE_LABELS[session.phase] ?? session.phase.replace(/_/g, " ");
   const legalMeta = LEGAL_SYSTEM_META[session.legalSystem ?? "general"] ?? LEGAL_SYSTEM_META.general;
   const isIndian = (session.legalSystem ?? "general") === "indian";
-
-  // Auto-switch off jury tab if Indian law (no jury system)
-  useEffect(() => {
-    if (isIndian && sidebarTab === "jury") setSidebarTab("docket");
-  }, [isIndian, sidebarTab]);
 
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden relative">
