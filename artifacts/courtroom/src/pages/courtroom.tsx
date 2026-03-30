@@ -6,7 +6,7 @@ import {
   Gavel, Sword, Shield, FileText, ChevronRight, Play, Square,
   AlertCircle, Plus, BrainCircuit, ArrowLeft, Scale, Cpu, Repeat,
   UserCheck, Users, X, Loader2, RefreshCw, Briefcase, CheckCircle,
-  XCircle, Clock, Download, RotateCcw,
+  XCircle, Clock, Download, RotateCcw, Menu,
 } from "lucide-react";
 
 import {
@@ -84,6 +84,7 @@ export default function Courtroom() {
   const [isCallingWitness, setIsCallingWitness] = useState<string | null>(null);
   const [isDismissing, setIsDismissing] = useState(false);
   const [sidebarTab, setSidebarTab] = useState<"docket" | "evidence" | "jury">("docket");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [evidenceOpen, setEvidenceOpen] = useState(false);
   const [evidenceTitle, setEvidenceTitle] = useState("");
   const [evidenceDesc, setEvidenceDesc] = useState("");
@@ -295,6 +296,12 @@ export default function Courtroom() {
 
   const phaseLabel = PHASE_LABELS[session.phase] ?? session.phase.replace(/_/g, " ");
   const legalMeta = LEGAL_SYSTEM_META[session.legalSystem ?? "general"] ?? LEGAL_SYSTEM_META.general;
+  const isIndian = (session.legalSystem ?? "general") === "indian";
+
+  // Auto-switch off jury tab if Indian law (no jury system)
+  useEffect(() => {
+    if (isIndian && sidebarTab === "jury") setSidebarTab("docket");
+  }, [isIndian, sidebarTab]);
 
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden relative">
@@ -303,26 +310,34 @@ export default function Courtroom() {
         <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-blue-500/5 rounded-full blur-[120px]" />
       </div>
 
+      {/* Mobile sidebar overlay backdrop */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-20 bg-black/60 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Header */}
-      <header className="h-16 relative z-10 glass-panel border-b border-white/5 flex items-center justify-between px-6 shrink-0">
+      <header className="h-14 md:h-16 relative z-10 glass-panel border-b border-white/5 flex items-center justify-between px-3 md:px-6 shrink-0">
         <div className="flex items-center space-x-4">
           <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="hover:bg-white/5 rounded-full">
             <ArrowLeft className="w-5 h-5 text-white/70" />
           </Button>
-          <div className="w-px h-6 bg-white/10" />
-          <h1 className="font-display font-bold text-xl text-white drop-shadow-md truncate max-w-[200px]">
+          <div className="w-px h-6 bg-white/10 hidden sm:block" />
+          <h1 className="font-display font-bold text-base md:text-xl text-white drop-shadow-md truncate max-w-[100px] sm:max-w-[200px]">
             {session.title}
           </h1>
-          <Badge variant="outline" className="ml-2 bg-white/5 border-white/10 text-primary font-semibold tracking-wider shrink-0">
+          <Badge variant="outline" className="hidden sm:flex bg-white/5 border-white/10 text-primary font-semibold tracking-wider shrink-0">
             {phaseLabel.toUpperCase()}
           </Badge>
-          <Badge variant="outline" className="ml-1 bg-white/5 border-white/10 text-white/60 font-medium shrink-0 gap-1.5">
+          <Badge variant="outline" className="hidden md:flex bg-white/5 border-white/10 text-white/60 font-medium shrink-0 gap-1.5">
             <span>{legalMeta.flag}</span>
-            <span className="hidden sm:inline">{legalMeta.label}</span>
+            <span>{legalMeta.label}</span>
           </Badge>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center gap-1 md:gap-2">
           {objectionCount > 0 && (
             <div className="hidden sm:flex items-center space-x-1.5 bg-red-500/10 border border-red-500/20 rounded-full px-3 py-1">
               <span className="text-xs font-bold text-red-400">{objectionCount}</span>
@@ -333,37 +348,84 @@ export default function Courtroom() {
             variant="ghost"
             size="icon"
             onClick={handleExportTranscript}
-            className="h-8 w-8 rounded-full hover:bg-white/10 text-white/50 hover:text-white"
+            className="h-8 w-8 rounded-full hover:bg-white/10 text-white/50 hover:text-white hidden sm:flex"
             title="Export transcript"
           >
             <Download className="w-4 h-4" />
           </Button>
-          <RoleToggle
-            role="Judge" icon={<Gavel className="w-4 h-4" />} color="primary"
-            isUser={session.roles.judge === "user"}
-            onToggle={(val) => handleRoleToggle("judge", val)}
-          />
-          <RoleToggle
-            role="Prosecutor" icon={<Sword className="w-4 h-4" />} color="blue-500"
-            isUser={session.roles.prosecutor === "user"}
-            onToggle={(val) => handleRoleToggle("prosecutor", val)}
-          />
-          <RoleToggle
-            role="Defense" icon={<Shield className="w-4 h-4" />} color="emerald-500"
-            isUser={session.roles.defense === "user"}
-            onToggle={(val) => handleRoleToggle("defense", val)}
-          />
+          <div className="hidden md:flex items-center gap-1">
+            <RoleToggle
+              role="Judge" icon={<Gavel className="w-4 h-4" />} color="primary"
+              isUser={session.roles.judge === "user"}
+              onToggle={(val) => handleRoleToggle("judge", val)}
+            />
+            <RoleToggle
+              role="Prosecutor" icon={<Sword className="w-4 h-4" />} color="blue-500"
+              isUser={session.roles.prosecutor === "user"}
+              onToggle={(val) => handleRoleToggle("prosecutor", val)}
+            />
+            <RoleToggle
+              role="Defense" icon={<Shield className="w-4 h-4" />} color="emerald-500"
+              isUser={session.roles.defense === "user"}
+              onToggle={(val) => handleRoleToggle("defense", val)}
+            />
+          </div>
+          {/* Mobile sidebar toggle */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setSidebarOpen((v) => !v)}
+            className="md:hidden h-8 w-8 rounded-full hover:bg-white/10 text-white/70"
+          >
+            <Menu className="w-4 h-4" />
+          </Button>
         </div>
       </header>
 
       {/* Main Layout */}
       <div className="flex-1 flex overflow-hidden relative z-10">
 
-        {/* Left Sidebar */}
-        <aside className="w-72 border-r border-white/5 bg-black/20 flex flex-col shrink-0 overflow-hidden">
+        {/* Left Sidebar — desktop: always visible, mobile: slide-in overlay */}
+        <aside className={`
+          flex flex-col shrink-0 overflow-hidden
+          border-r border-white/5 bg-[#0d0d10]
+          w-[85vw] max-w-[320px] md:w-72
+          md:relative md:translate-x-0
+          fixed top-0 bottom-0 left-0 z-30
+          transition-transform duration-200
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+          md:!translate-x-0
+        `}>
+          {/* Mobile sidebar header */}
+          <div className="md:hidden flex items-center justify-between px-4 h-14 border-b border-white/5 shrink-0">
+            <span className="font-display font-bold text-white/80 text-sm tracking-wider uppercase">Sidebar</span>
+            <button onClick={() => setSidebarOpen(false)} className="text-white/40 hover:text-white/80">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Role toggles on mobile (hidden in header on mobile) */}
+          <div className="md:hidden flex items-center gap-2 px-4 py-3 border-b border-white/5 shrink-0">
+            <RoleToggle
+              role="Judge" icon={<Gavel className="w-4 h-4" />} color="primary"
+              isUser={session.roles.judge === "user"}
+              onToggle={(val) => { handleRoleToggle("judge", val); setSidebarOpen(false); }}
+            />
+            <RoleToggle
+              role="Prosecutor" icon={<Sword className="w-4 h-4" />} color="blue-500"
+              isUser={session.roles.prosecutor === "user"}
+              onToggle={(val) => { handleRoleToggle("prosecutor", val); setSidebarOpen(false); }}
+            />
+            <RoleToggle
+              role="Defense" icon={<Shield className="w-4 h-4" />} color="emerald-500"
+              isUser={session.roles.defense === "user"}
+              onToggle={(val) => { handleRoleToggle("defense", val); setSidebarOpen(false); }}
+            />
+          </div>
+
           {/* Tab Switcher */}
           <div className="flex border-b border-white/5 shrink-0">
-            {(["docket", "evidence", "jury"] as const).map((tab) => {
+            {(["docket", "evidence", ...(!isIndian ? ["jury"] : [])] as ("docket" | "evidence" | "jury")[]).map((tab) => {
               const icons = { docket: <FileText className="w-3.5 h-3.5" />, evidence: <Briefcase className="w-3.5 h-3.5" />, jury: <Users className="w-3.5 h-3.5" /> };
               const labels = { docket: "Docket", evidence: "Evidence", jury: "Jury" };
               return (
@@ -751,8 +813,8 @@ export default function Courtroom() {
             )}
           </AnimatePresence>
 
-          <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 md:p-10 transcript-scroll scroll-smooth">
-            <div className="max-w-4xl mx-auto pb-40">
+          <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 sm:p-6 md:p-10 transcript-scroll scroll-smooth">
+            <div className="max-w-4xl mx-auto pb-44">
               <AnimatePresence initial={false}>
                 {session.transcript.map(entry => (
                   <TranscriptEntryCard key={entry.id} entry={entry} />
@@ -811,23 +873,23 @@ export default function Courtroom() {
           </div>
 
           {/* Bottom Input */}
-          <div className="absolute bottom-0 left-0 right-0 p-6 pt-12 bg-gradient-to-t from-background via-background/90 to-transparent">
-            <div className="max-w-4xl mx-auto glass-panel p-4 rounded-3xl border border-white/10 shadow-2xl relative">
+          <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-6 pt-8 sm:pt-12 bg-gradient-to-t from-background via-background/90 to-transparent">
+            <div className="max-w-4xl mx-auto glass-panel p-3 sm:p-4 rounded-2xl sm:rounded-3xl border border-white/10 shadow-2xl relative">
 
               {!hasAnyUserRole ? (
-                <div className="flex flex-col items-center justify-center py-4 space-y-4">
-                  <div className="text-sm text-white/50 uppercase tracking-widest font-semibold flex items-center">
+                <div className="flex flex-col items-center justify-center py-3 space-y-3">
+                  <div className="text-xs sm:text-sm text-white/50 uppercase tracking-widest font-semibold flex items-center">
                     <BrainCircuit className="w-4 h-4 mr-2" />
                     Viewer Mode — AI Controls All Roles
                   </div>
-                  <div className="flex items-center space-x-4">
+                  <div className="flex items-center gap-3">
                     <Button
                       size="lg"
                       onClick={handleAutoProceed}
                       disabled={isAiThinking || session.phase === "concluded"}
-                      className="bg-primary hover:bg-primary/90 text-black font-bold px-10 rounded-xl h-14 text-base shadow-[0_0_30px_rgba(212,175,55,0.3)] hover:shadow-[0_0_50px_rgba(212,175,55,0.5)] transition-all"
+                      className="bg-primary hover:bg-primary/90 text-black font-bold px-6 sm:px-10 rounded-xl h-12 sm:h-14 text-sm sm:text-base shadow-[0_0_30px_rgba(212,175,55,0.3)] hover:shadow-[0_0_50px_rgba(212,175,55,0.5)] transition-all"
                     >
-                      <Play className="w-5 h-5 mr-2" />
+                      <Play className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                       {isAiThinking ? "AI Speaking..." : "Next Turn"}
                     </Button>
 
@@ -837,15 +899,15 @@ export default function Courtroom() {
                         variant={isAutoPlaying ? "destructive" : "outline"}
                         onClick={() => setIsAutoPlaying(!isAutoPlaying)}
                         disabled={session.phase === "concluded"}
-                        className={`h-14 px-6 rounded-xl font-bold border transition-all ${isAutoPlaying
+                        className={`h-12 sm:h-14 px-4 sm:px-6 rounded-xl font-bold border transition-all ${isAutoPlaying
                           ? "bg-red-500/20 border-red-500/50 text-red-400 hover:bg-red-500/30"
                           : "bg-white/5 border-white/10 hover:bg-white/10"
                           }`}
                       >
                         {isAutoPlaying ? (
-                          <><Square className="w-4 h-4 mr-2" />Stop Auto Play</>
+                          <><Square className="w-4 h-4 mr-1 sm:mr-2" /><span className="hidden sm:inline">Stop </span>Auto Play</>
                         ) : (
-                          <><Repeat className="w-4 h-4 mr-2" />Auto Play</>
+                          <><Repeat className="w-4 h-4 mr-1 sm:mr-2" />Auto Play</>
                         )}
                       </Button>
                       {isAutoPlaying && (
@@ -868,40 +930,38 @@ export default function Courtroom() {
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between px-2">
-                    <div className="flex items-center space-x-3">
-                      <Select value={selectedRole} onValueChange={(v: any) => setSelectedRole(v)}>
-                        <SelectTrigger className="w-[180px] bg-white/5 border-white/10 text-white font-semibold">
-                          <SelectValue placeholder="Speak as..." />
-                        </SelectTrigger>
-                        <SelectContent className="bg-secondary border-white/10 text-white">
-                          {isUserRole("judge") && <SelectItem value="judge">⚖️ Judge</SelectItem>}
-                          {isUserRole("prosecutor") && <SelectItem value="prosecutor">⚔️ Prosecutor</SelectItem>}
-                          {isUserRole("defense") && <SelectItem value="defense">🛡️ Defense</SelectItem>}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                  <div className="flex items-center justify-between px-1 sm:px-2">
+                    <Select value={selectedRole} onValueChange={(v: any) => setSelectedRole(v)}>
+                      <SelectTrigger className="w-[130px] sm:w-[180px] bg-white/5 border-white/10 text-white font-semibold text-xs sm:text-sm">
+                        <SelectValue placeholder="Speak as..." />
+                      </SelectTrigger>
+                      <SelectContent className="bg-secondary border-white/10 text-white">
+                        {isUserRole("judge") && <SelectItem value="judge">⚖️ Judge</SelectItem>}
+                        {isUserRole("prosecutor") && <SelectItem value="prosecutor">⚔️ Prosecutor</SelectItem>}
+                        {isUserRole("defense") && <SelectItem value="defense">🛡️ Defense</SelectItem>}
+                      </SelectContent>
+                    </Select>
 
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center gap-1">
                       {!isUserRole("judge") && (
-                        <Button variant="ghost" size="sm" onClick={() => handleAiTurn("judge")} disabled={isAiThinking} className="text-primary hover:bg-primary/20 hover:text-primary text-xs">
+                        <Button variant="ghost" size="sm" onClick={() => handleAiTurn("judge")} disabled={isAiThinking} className="text-primary hover:bg-primary/20 hover:text-primary text-[10px] sm:text-xs h-7 px-2">
                           Judge AI
                         </Button>
                       )}
                       {!isUserRole("prosecutor") && (
-                        <Button variant="ghost" size="sm" onClick={() => handleAiTurn("prosecutor")} disabled={isAiThinking} className="text-blue-400 hover:bg-blue-500/20 hover:text-blue-400 text-xs">
+                        <Button variant="ghost" size="sm" onClick={() => handleAiTurn("prosecutor")} disabled={isAiThinking} className="text-blue-400 hover:bg-blue-500/20 hover:text-blue-400 text-[10px] sm:text-xs h-7 px-2">
                           Pros AI
                         </Button>
                       )}
                       {!isUserRole("defense") && (
-                        <Button variant="ghost" size="sm" onClick={() => handleAiTurn("defense")} disabled={isAiThinking} className="text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-400 text-xs">
+                        <Button variant="ghost" size="sm" onClick={() => handleAiTurn("defense")} disabled={isAiThinking} className="text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-400 text-[10px] sm:text-xs h-7 px-2">
                           Def AI
                         </Button>
                       )}
                     </div>
                   </div>
 
-                  <div className="flex space-x-3 items-end">
+                  <div className="flex gap-2 items-end">
                     <Textarea
                       value={inputContent}
                       onChange={e => setInputContent(e.target.value)}
@@ -913,17 +973,17 @@ export default function Courtroom() {
                       }}
                       placeholder={
                         activeWitness
-                          ? `Question ${activeWitness.name}... (Enter to send)`
-                          : "Type your statement to the court... (Enter to send, Shift+Enter for new line)"
+                          ? `Question ${activeWitness.name}...`
+                          : "Type your statement to the court..."
                       }
-                      className="resize-none bg-black/40 border-white/10 text-base py-3 px-4 rounded-2xl focus:ring-primary/50"
+                      className="resize-none bg-black/40 border-white/10 text-sm sm:text-base py-2 sm:py-3 px-3 sm:px-4 rounded-xl sm:rounded-2xl focus:ring-primary/50"
                       rows={2}
                       disabled={isAiThinking}
                     />
                     <Button
                       onClick={handleSpeak}
                       disabled={!inputContent.trim() || !selectedRole || isAiThinking}
-                      className="h-[52px] px-8 rounded-2xl bg-primary hover:bg-primary/90 text-black font-bold shadow-[0_0_20px_rgba(212,175,55,0.2)]"
+                      className="h-[48px] sm:h-[52px] px-4 sm:px-8 rounded-xl sm:rounded-2xl bg-primary hover:bg-primary/90 text-black font-bold shadow-[0_0_20px_rgba(212,175,55,0.2)] shrink-0"
                     >
                       {isAiThinking ? <Repeat className="w-5 h-5 animate-spin" /> : <Gavel className="w-5 h-5" />}
                     </Button>
