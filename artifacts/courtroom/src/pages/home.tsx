@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { Scale, FileText, Settings2, Play, AlertCircle, ChevronRight, Gavel, Trash2, BrainCircuit } from "lucide-react";
+import { Scale, FileText, Settings2, Play, AlertCircle, ChevronRight, Gavel, Trash2, BrainCircuit, Loader2 } from "lucide-react";
 import { useListCases, useCreateCase, useDeleteCase } from "@/hooks/use-courtroom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -322,10 +322,12 @@ export default function Home() {
                         <button
                           onClick={(e) => handleDeleteCase(c.caseId, e)}
                           disabled={deletingId === c.caseId}
-                          className="absolute top-3 right-3 p-1.5 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-red-500/20 text-white/30 hover:text-red-400 transition-all"
-                          title="Dismiss case"
+                          className="absolute top-3 right-3 p-1.5 rounded-lg hover:bg-red-500/20 text-white/20 hover:text-red-400 active:text-red-400 transition-all md:opacity-0 md:group-hover:opacity-100"
+                          title="Delete case"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          {deletingId === c.caseId
+                            ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            : <Trash2 className="w-3.5 h-3.5" />}
                         </button>
                       </div>
                     );
