@@ -35,7 +35,8 @@ export function useLiveCase(caseId: string) {
 
 export type StreamState = {
   isPending: boolean;
-  activeRole: "judge" | "prosecutor" | "defense" | null;
+  activeRole: "judge" | "prosecutor" | "defense" | "witness" | null;
+  activeWitnessName: string | null;
   streamingContent: string;
 };
 
@@ -45,6 +46,7 @@ export function useCourtStream(caseId: string) {
   const [streamState, setStreamState] = useState<StreamState>({
     isPending: false,
     activeRole: null,
+    activeWitnessName: null,
     streamingContent: "",
   });
 
@@ -54,7 +56,7 @@ export function useCourtStream(caseId: string) {
       const controller = new AbortController();
       abortRef.current = controller;
 
-      setStreamState({ isPending: true, activeRole: null, streamingContent: "" });
+      setStreamState({ isPending: true, activeRole: null, activeWitnessName: null, streamingContent: "" });
 
       try {
         const response = await fetch(path, {
@@ -105,6 +107,14 @@ export function useCourtStream(caseId: string) {
               setStreamState({
                 isPending: true,
                 activeRole: data.role as "judge" | "prosecutor" | "defense",
+                activeWitnessName: null,
+                streamingContent: "",
+              });
+            } else if (eventName === "witness_start") {
+              setStreamState({
+                isPending: true,
+                activeRole: "witness",
+                activeWitnessName: (data.name as string) ?? null,
                 streamingContent: "",
               });
             } else if (eventName === "token") {
@@ -112,12 +122,13 @@ export function useCourtStream(caseId: string) {
                 ...prev,
                 streamingContent: prev.streamingContent + (data.token as string),
               }));
-            } else if (eventName === "ai_entry") {
-              setStreamState({
-                isPending: true,
+            } else if (eventName === "ai_entry" || eventName === "witness_entry") {
+              setStreamState((prev) => ({
+                ...prev,
                 activeRole: null,
+                activeWitnessName: null,
                 streamingContent: "",
-              });
+              }));
             }
           }
         }
@@ -125,7 +136,7 @@ export function useCourtStream(caseId: string) {
         if (err instanceof Error && err.name === "AbortError") return;
         throw err;
       } finally {
-        setStreamState({ isPending: false, activeRole: null, streamingContent: "" });
+        setStreamState({ isPending: false, activeRole: null, activeWitnessName: null, streamingContent: "" });
         queryClient.invalidateQueries({
           queryKey: getGetCaseQueryKey(caseId),
         });
@@ -151,7 +162,47 @@ export function useCourtStream(caseId: string) {
     [caseId, callStream]
   );
 
-  return { streamState, streamSpeak, streamAiTurn, streamAutoProceed };
+  const streamWitnessRespond = useCallback(
+    (question: string) =>
+      callStream(`/api/cases/${caseId}/witness/respond/stream`, { question }),
+    [caseId, callStream]
+  );
+
+  return { streamState, streamSpeak, streamAiTurn, streamAutoProceed, streamWitnessRespond };
+}
+
+export function useWitnessActions(caseId: string) {
+  const queryClient = useQueryClient();
+
+  const invalidate = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: getGetCaseQueryKey(caseId) });
+  }, [caseId, queryClient]);
+
+  const extractPersons = useCallback(async () => {
+    const res = await fetch(`/api/cases/${caseId}/persons/extract`, { method: "POST" });
+    if (!res.ok) throw new Error("Failed to extract persons");
+    const data = await res.json() as { persons: CasePerson[] };
+    invalidate();
+    return data.persons;
+  }, [caseId, invalidate]);
+
+  const callWitness = useCallback(async (personId: string) => {
+    const res = await fetch(`/api/cases/${caseId}/witness/call`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ personId }),
+    });
+    if (!res.ok) throw new Error("Failed to call witness");
+    invalidate();
+  }, [caseId, invalidate]);
+
+  const dismissWitness = useCallback(async () => {
+    const res = await fetch(`/api/cases/${caseId}/witness/dismiss`, { method: "POST" });
+    if (!res.ok) throw new Error("Failed to dismiss witness");
+    invalidate();
+  }, [caseId, invalidate]);
+
+  return { extractPersons, callWitness, dismissWitness };
 }
 
 export {

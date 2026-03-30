@@ -23,7 +23,7 @@ export type RoleAssignment = {
 
 export type TranscriptEntry = {
   id: string;
-  role: "judge" | "prosecutor" | "defense" | "system";
+  role: "judge" | "prosecutor" | "defense" | "system" | "witness";
   speaker: string;
   content: string;
   timestamp: string;
@@ -37,6 +37,20 @@ export type Development = {
   timestamp: string;
 };
 
+export type CasePerson = {
+  id: string;
+  name: string;
+  role: string;
+  context: string;
+};
+
+export type ActiveWitness = {
+  personId: string;
+  name: string;
+  role: string;
+  context: string;
+};
+
 export type CaseSession = {
   caseId: string;
   title: string;
@@ -45,6 +59,8 @@ export type CaseSession = {
   roles: RoleAssignment;
   transcript: TranscriptEntry[];
   developments: Development[];
+  persons: CasePerson[];
+  activeWitness: ActiveWitness | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -65,12 +81,15 @@ export async function saveCase(session: CaseSession): Promise<void> {
 
 export async function loadCase(caseId: string): Promise<CaseSession | null> {
   const filePath = getCasePath(caseId);
-  if (!existsSync(filePath)) {
-    return null;
-  }
+  if (!existsSync(filePath)) return null;
   try {
     const raw = await readFile(filePath, "utf-8");
-    return JSON.parse(raw) as CaseSession;
+    const parsed = JSON.parse(raw) as Partial<CaseSession>;
+    return {
+      persons: [],
+      activeWitness: null,
+      ...parsed,
+    } as CaseSession;
   } catch (err) {
     logger.error({ caseId, err }, "Failed to load case from disk");
     return null;
@@ -79,9 +98,7 @@ export async function loadCase(caseId: string): Promise<CaseSession | null> {
 
 export async function deleteCase(caseId: string): Promise<boolean> {
   const filePath = getCasePath(caseId);
-  if (!existsSync(filePath)) {
-    return false;
-  }
+  if (!existsSync(filePath)) return false;
   await rm(filePath);
   return true;
 }
@@ -109,9 +126,7 @@ export async function listCases(): Promise<
         }
       })
     );
-    return cases.filter(Boolean) as Array<
-      Pick<CaseSession, "caseId" | "title" | "phase" | "createdAt">
-    >;
+    return cases.filter(Boolean) as Array<Pick<CaseSession, "caseId" | "title" | "phase" | "createdAt">>;
   } catch {
     return [];
   }
@@ -142,6 +157,8 @@ export function createNewCase(
     roles,
     transcript: [openingEntry],
     developments: [],
+    persons: [],
+    activeWitness: null,
     createdAt: now,
     updatedAt: now,
   };
@@ -149,21 +166,23 @@ export function createNewCase(
 
 export function addTranscriptEntry(
   session: CaseSession,
-  role: "judge" | "prosecutor" | "defense" | "system",
+  role: "judge" | "prosecutor" | "defense" | "system" | "witness",
   content: string,
-  controlledBy: "user" | "ai" | "system"
+  controlledBy: "user" | "ai" | "system",
+  speakerOverride?: string
 ): TranscriptEntry {
-  const speakerNames: Record<string, string> = {
+  const defaultNames: Record<string, string> = {
     judge: "The Honorable Judge",
     prosecutor: "Prosecution Counsel",
     defense: "Defense Counsel",
     system: "Court",
+    witness: "Witness",
   };
 
   const entry: TranscriptEntry = {
     id: randomUUID(),
     role,
-    speaker: speakerNames[role] ?? role,
+    speaker: speakerOverride ?? defaultNames[role] ?? role,
     content,
     timestamp: new Date().toISOString(),
     controlledBy,

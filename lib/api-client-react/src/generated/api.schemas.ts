@@ -50,6 +50,7 @@ export const TranscriptEntryRole = {
   prosecutor: "prosecutor",
   defense: "defense",
   system: "system",
+  witness: "witness",
 } as const;
 
 export type TranscriptEntryControlledBy =
@@ -77,6 +78,20 @@ export interface Development {
   timestamp: string;
 }
 
+export interface CasePerson {
+  id: string;
+  name: string;
+  role: string;
+  context: string;
+}
+
+export interface ActiveWitness {
+  personId: string;
+  name: string;
+  role: string;
+  context: string;
+}
+
 export interface CaseSession {
   caseId: string;
   title: string;
@@ -85,6 +100,8 @@ export interface CaseSession {
   roles: RoleAssignment;
   transcript: TranscriptEntry[];
   developments: Development[];
+  persons: CasePerson[];
+  activeWitness: ActiveWitness | null;
   createdAt: string;
   updatedAt: string;
 }

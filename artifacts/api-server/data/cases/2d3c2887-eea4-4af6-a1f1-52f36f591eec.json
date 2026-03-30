@@ -1,4 +1,55 @@
 {
+  "persons": [
+    {
+      "id": "f8c4fe47-2526-4956-935d-d340f5b52b29",
+      "name": "Hitender @ Chhotu",
+      "role": "Accused",
+      "context": "Hitender @ Chhotu is identified as the main accused and alleged gang leader in the case. He was charged with murder and criminal conspiracy in the killing of Vijay Singh Yadav."
+    },
+    {
+      "id": "a6e581cc-7ecf-44ab-ae90-a3a316ace1c7",
+      "name": "Deepak @ Charu",
+      "role": "Accused",
+      "context": "Deepak @ Charu is listed as one of the accused persons in the case. He was charged under Section 302 (Murder) and Section 120B (Criminal conspiracy) of the IPC."
+    },
+    {
+      "id": "e85a40da-5995-4d72-8b9d-2ac5003c7706",
+      "name": "Bhisham",
+      "role": "Accused",
+      "context": "Bhisham is named as an accused in the case and was charged with murder and criminal conspiracy. He was alleged to be part of the criminal gang involved in the contract killing."
+    },
+    {
+      "id": "692afca2-35be-4b72-8507-0ad4364256b5",
+      "name": "Desh Raj",
+      "role": "Accused",
+      "context": "Desh Raj is listed among the accused persons in the case. He was charged with murder and criminal conspiracy related to the death of Vijay Singh Yadav."
+    },
+    {
+      "id": "cf0542ce-2150-4601-9098-950bdc7733d6",
+      "name": "Rishi Pal",
+      "role": "Accused",
+      "context": "Rishi Pal is named as an accused in the case and was charged with murder and criminal conspiracy. He was alleged to be part of the conspiracy to kill Vijay Singh Yadav."
+    },
+    {
+      "id": "da1097f8-2e0d-492f-b7f2-3419c1002a8b",
+      "name": "Ashok Jain",
+      "role": "Accused",
+      "context": "Ashok Jain is listed as an accused in the case and was charged with murder and criminal conspiracy. He was alleged to have participated in the plot to kill Vijay Singh Yadav."
+    },
+    {
+      "id": "c4646fad-f26c-44db-a88b-fe91af783e72",
+      "name": "Gopal Krishan Aggarwal",
+      "role": "Accused",
+      "context": "Gopal Krishan Aggarwal is named as an accused in the case and was charged with murder and criminal conspiracy. He was alleged to be involved in the criminal conspiracy leading to the murder."
+    },
+    {
+      "id": "edf1936f-5748-4640-b351-1eb53ff05291",
+      "name": "Vijay Singh Yadav",
+      "role": "Victim",
+      "context": "Vijay Singh Yadav is the deceased in the case, allegedly murdered in Delhi. The prosecution claimed he was killed as part of a contract killing motivated by financial gain."
+    }
+  ],
+  "activeWitness": null,
   "caseId": "2d3c2887-eea4-4af6-a1f1-52f36f591eec",
   "title": "State vs cg",
   "caseText": "1. Case Identity\nTitle: State vs. Hitender @ Chhotu & Others\nCourt: Additional Sessions Judge‑01, Tis Hazari Courts, Delhi\nFIR Involved: FIR No. 356/2007 (Hauz Qazi Police Station)\nJudgment Date: 21 April 2012\nPublic Judgment Source: Indian Kanoon public record �\nIndian Kanoon\n2. Incident Summary\nA murder was alleged: deceased Vijay Singh Yadav was killed in Delhi.\nThe prosecution’s claim was that several accused hired a criminal gang to murder him for pecuniary gain (contract killing) through shared criminal motives.\nMultiple accused were charged, including Hitender @ Chhotu, Ashok Jain, Rishi Pal, Gopal Krishan Aggarwal, and others — alleged to be part of a conspiracy to murder. �\nIndian Kanoon\n3. Accused Persons\nMain accused named in the case judgment include:\nHitender @ Chhotu (alleged gang leader)\nDeepak @ Charu\nBhisham\nDesh Raj\nRishi Pal\nAshok Jain\nGopal Krishan Aggarwal\n(For your simulator you can focus on a subset of these.) �\nIndian Kanoon\n4. Legal Charges\nMain Criminal Offences\nSection 302 of IPC – Murder\nSection 120B of IPC – Criminal conspiracy\n(Prosecution also attempted charges under the MCOCA organized crime act, which became central in dispute.)",
@@ -112,9 +163,57 @@
       "content": "Your Honor,\n\nThe prosecution asks this Court to convict my clients based on a web of speculation—on coincidence dressed as conspiracy, on suspicion masquerading as proof. But the law demands more. It demands certainty. It demands evidence that eliminates reasonable doubt—not evidence that merely points a finger.\n\nLet us begin with the foundation of the prosecution’s case: motive. Yes, Ashok Jain and Gopal Krishan Aggarwal were involved in a civil property dispute with the deceased. But a civil dispute is not a death sentence. It is not proof of murder. Millions of Indians litigate over property every year without resorting to assassination. To suggest that because these men had a legal disagreement, they must have hired killers is to criminalize disagreement itself. Where is the evidence of threats? Of violent history? Of any prior connection to organized crime or contract killing? There is none. Only assumption.\n\nNow, the so-called “financial trail.” Cash withdrawals. The prosecution treats ₹1.2 lakh and ₹75,000 as damning sums—but offers no context. Were these funds used for the alleged killing? No currency was recovered. No serial numbers traced. No witness saw the money change hands. The ₹50,000 allegedly paid to Deepak @ Charu exists only in a custodial disclosure—a statement extracted in police custody, where coercion is not the exception but the norm. Under Section 25 of the Indian Evidence Act, such a statement is inadmissible as proof of the fact confessed. Even under Section 27, only the recovery of the motorcycle is admissible—not the narrative of murder for hire. And yet, the prosecution builds its entire case on that narrative.\n\nAnd what of the motorcycle? Recovered from a scrap dealer who claims Bhisham sold it. But Bhisham is not here to testify. The scrap dealer’s statement is hearsay unless he is produced in open court. Even if believed, selling a motorcycle after a crime does not prove involvement in the crime. It proves only that a bike was sold. The chain of custody is broken. The link to my client Hitender @ Chhotu is nonexistent.\n\nThe call detail records—frequent calls, yes. But contentless. Contextless. These men are businessmen with disputes. They communicate. That is not a crime. The prosecution asks you to infer conspiracy from silence—from the absence of calls after the murder. But perhaps they resolved their matter. Perhaps they simply stopped talking. To assume criminal intent from communication patterns alone is to abandon reason for suspicion.\n\nAnd the eyewitness, Smt. Usha Devi? She saw two men on a motorcycle in the dim light of early morning, one wearing a helmet. She claims to have identified Hitender @ Chhotu weeks later in a police-conducted parade. But identification under such conditions—fleeting glance, partial concealment, delayed procedure—is inherently unreliable. The Supreme Court has repeatedly warned against such identifications, especially when conducted under police supervision and without strict compliance with procedural safeguards. Was the parade truly fair? Was it video-recorded in full, or selectively? The burden is on the State to prove its fairness—not on the accused to prove its taint.\n\nYour Honor, the prosecution speaks of an “unbroken chain” of evidence. But a chain is only as strong as its weakest link—and here, every link is fractured. There is no forensic link between my clients and the crime scene. No weapon. No bloodstains. No fingerprints. No DNA. The body was found, the crime occurred—but the connection to my clients rests entirely on inference, on coincidence, on the word of an accused in custody.\n\nThe burden is on the State to prove guilt beyond reasonable doubt. That burden has not been met. Reasonable doubt exists—not as a technicality, but as a fundamental principle of justice. To convict my clients on this record would be to substitute conjecture for evidence, and fear for fairness.\n\nWe do not deny that a murder occurred. But we do deny that the prosecution has proven who committed it. The real killers may still be at large. The real conspiracy may remain uncovered. But to punish the wrong men to close a case is not justice—it is its opposite.\n\nI ask this Court to see through the smoke of suspicion and recognize the absence of fire. The charges must fail.\n\nThank you, Your Honor.",
       "timestamp": "2026-03-30T05:21:55.275Z",
       "controlledBy": "ai"
+    },
+    {
+      "id": "265dca72-c26d-4407-84ff-f4f6dc6917fc",
+      "role": "system",
+      "speaker": "Court",
+      "content": "Hitender @ Chhotu (Accused) has been called to the stand and sworn in.",
+      "timestamp": "2026-03-30T06:03:32.559Z",
+      "controlledBy": "system"
+    },
+    {
+      "id": "77db5eb7-3b06-491b-87ac-a9bd2cd503bc",
+      "role": "system",
+      "speaker": "Court",
+      "content": "Hitender @ Chhotu has been excused from the stand.",
+      "timestamp": "2026-03-30T06:03:38.369Z",
+      "controlledBy": "system"
+    },
+    {
+      "id": "3e9bd19a-8e42-4c7e-8b38-8f8f651c05e8",
+      "role": "system",
+      "speaker": "Court",
+      "content": "Hitender @ Chhotu (Accused) has been called to the stand and sworn in.",
+      "timestamp": "2026-03-30T06:03:38.369Z",
+      "controlledBy": "system"
+    },
+    {
+      "id": "c6bfb9f0-133c-416f-aed3-df61d9a86156",
+      "role": "system",
+      "speaker": "Court",
+      "content": "Hitender @ Chhotu has been excused from the stand.",
+      "timestamp": "2026-03-30T06:03:45.377Z",
+      "controlledBy": "system"
+    },
+    {
+      "id": "c4f418b9-065d-4aa7-8e15-d51367c64951",
+      "role": "system",
+      "speaker": "Court",
+      "content": "Hitender @ Chhotu (Accused) has been called to the stand and sworn in.",
+      "timestamp": "2026-03-30T06:03:45.377Z",
+      "controlledBy": "system"
+    },
+    {
+      "id": "2e5bae20-539c-45cf-a2c1-3790e4186ffc",
+      "role": "system",
+      "speaker": "Court",
+      "content": "Hitender @ Chhotu has been dismissed from the stand. Thank you for your testimony.",
+      "timestamp": "2026-03-30T06:04:06.699Z",
+      "controlledBy": "system"
     }
   ],
   "developments": [],
   "createdAt": "2026-03-30T05:14:56.302Z",
-  "updatedAt": "2026-03-30T05:21:55.275Z"
+  "updatedAt": "2026-03-30T06:04:06.699Z"
 }

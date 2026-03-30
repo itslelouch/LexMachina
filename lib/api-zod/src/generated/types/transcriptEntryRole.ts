@@ -14,4 +14,5 @@ export const TranscriptEntryRole = {
   prosecutor: "prosecutor",
   defense: "defense",
   system: "system",
+  witness: "witness",
 } as const;

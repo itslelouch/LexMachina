@@ -5,13 +5,14 @@ import { format } from "date-fns";
 import {
   Gavel, Sword, Shield, FileText, ChevronRight, Play, Square,
   AlertCircle, Plus, BrainCircuit, ArrowLeft, Scale, Cpu, Repeat,
+  UserCheck, Users, X, Loader2, RefreshCw,
 } from "lucide-react";
 
 import {
-  useLiveCase, useChatScroll, useCourtStream,
+  useLiveCase, useChatScroll, useCourtStream, useWitnessActions,
   useUpdateRoles, useUpdatePhase, useAddDevelopment,
 } from "@/hooks/use-courtroom";
-import type { CourtPhase, TranscriptEntry } from "@workspace/api-client-react";
+import type { CourtPhase, TranscriptEntry, CasePerson, ActiveWitness } from "@workspace/api-client-react";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -56,7 +57,8 @@ export default function Courtroom() {
   const { toast } = useToast();
 
   const { data: session, isLoading, error } = useLiveCase(caseId);
-  const { streamState, streamSpeak, streamAiTurn, streamAutoProceed } = useCourtStream(caseId);
+  const { streamState, streamSpeak, streamAiTurn, streamAutoProceed, streamWitnessRespond } = useCourtStream(caseId);
+  const { extractPersons, callWitness, dismissWitness } = useWitnessActions(caseId);
 
   const updateRoles = useUpdateRoles();
   const updatePhase = useUpdatePhase();
@@ -68,6 +70,9 @@ export default function Courtroom() {
   const [devContent, setDevContent] = useState("");
   const [devOpen, setDevOpen] = useState(false);
   const [isAutoPlaying, setIsAutoPlaying] = useState(false);
+  const [isExtractingPersons, setIsExtractingPersons] = useState(false);
+  const [isCallingWitness, setIsCallingWitness] = useState<string | null>(null);
+  const [isDismissing, setIsDismissing] = useState(false);
 
   const pendingRolesRef = useRef<typeof session.roles | null>(null);
   const rolesTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -126,6 +131,8 @@ export default function Courtroom() {
   const isUserRole = (role: Role) => session.roles[role] === "user";
   const hasAnyUserRole = isUserRole("judge") || isUserRole("prosecutor") || isUserRole("defense");
   const isAiThinking = streamState.isPending;
+  const persons: CasePerson[] = session.persons ?? [];
+  const activeWitness: ActiveWitness | null = session.activeWitness ?? null;
 
   const handleSpeak = async () => {
     if (!inputContent.trim() || !selectedRole || isAiThinking) return;
@@ -166,6 +173,43 @@ export default function Courtroom() {
       toast({ title: "Development Added", description: "The case context has been updated." });
     } catch {
       toast({ title: "Failed to add development", variant: "destructive" });
+    }
+  };
+
+  const handleExtractPersons = async () => {
+    setIsExtractingPersons(true);
+    try {
+      const extracted = await extractPersons();
+      toast({
+        title: `${extracted.length} person${extracted.length !== 1 ? "s" : ""} identified`,
+        description: "All named individuals from the case file have been added.",
+      });
+    } catch {
+      toast({ title: "Failed to identify persons", variant: "destructive" });
+    } finally {
+      setIsExtractingPersons(false);
+    }
+  };
+
+  const handleCallWitness = async (personId: string) => {
+    setIsCallingWitness(personId);
+    try {
+      await callWitness(personId);
+    } catch {
+      toast({ title: "Failed to call witness", variant: "destructive" });
+    } finally {
+      setIsCallingWitness(null);
+    }
+  };
+
+  const handleDismissWitness = async () => {
+    setIsDismissing(true);
+    try {
+      await dismissWitness();
+    } catch {
+      toast({ title: "Failed to dismiss witness", variant: "destructive" });
+    } finally {
+      setIsDismissing(false);
     }
   };
 
@@ -223,13 +267,15 @@ export default function Courtroom() {
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 transcript-scroll space-y-6">
+            {/* Original Brief */}
             <div>
               <h3 className="text-xs uppercase tracking-wider text-muted-foreground font-bold mb-3">Original Brief</h3>
-              <div className="bg-white/5 border border-white/5 rounded-xl p-4 text-sm text-white/70 leading-relaxed font-sans max-h-64 overflow-y-auto transcript-scroll">
+              <div className="bg-white/5 border border-white/5 rounded-xl p-4 text-sm text-white/70 leading-relaxed font-sans max-h-48 overflow-y-auto transcript-scroll">
                 {session.caseText.split("\n").map((p, i) => <p key={i} className="my-1">{p}</p>)}
               </div>
             </div>
 
+            {/* Developments */}
             <div>
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-xs uppercase tracking-wider text-muted-foreground font-bold">Developments</h3>
@@ -276,6 +322,93 @@ export default function Courtroom() {
                 </div>
               )}
             </div>
+
+            {/* Persons & Witnesses */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-2">
+                  <Users className="w-4 h-4 text-orange-400" />
+                  <h3 className="text-xs uppercase tracking-wider text-muted-foreground font-bold">Persons</h3>
+                </div>
+                <Button
+                  variant="ghost" size="icon"
+                  className="h-6 w-6 rounded-full hover:bg-orange-400/20 hover:text-orange-400"
+                  onClick={handleExtractPersons}
+                  disabled={isExtractingPersons}
+                  title="Re-identify all persons from case file"
+                >
+                  {isExtractingPersons ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+                </Button>
+              </div>
+
+              {persons.length === 0 ? (
+                <div className="text-center p-4 bg-black/20 rounded-xl">
+                  <p className="text-xs text-white/30 italic mb-3">No persons identified yet.</p>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-orange-400/30 text-orange-400 hover:bg-orange-400/10 text-xs h-7"
+                    onClick={handleExtractPersons}
+                    disabled={isExtractingPersons}
+                  >
+                    {isExtractingPersons ? (
+                      <><Loader2 className="w-3 h-3 mr-1 animate-spin" />Scanning...</>
+                    ) : (
+                      <><Users className="w-3 h-3 mr-1" />Identify Persons</>
+                    )}
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {persons.map(person => {
+                    const isActive = activeWitness?.personId === person.id;
+                    const isCalling = isCallingWitness === person.id;
+                    return (
+                      <div
+                        key={person.id}
+                        className={`rounded-xl p-3 border transition-all ${
+                          isActive
+                            ? "bg-orange-400/10 border-orange-400/40"
+                            : "bg-white/3 border-white/5 hover:border-white/10"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center space-x-1.5">
+                              {isActive && <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-pulse shrink-0" />}
+                              <p className="text-sm font-semibold text-white truncate">{person.name}</p>
+                            </div>
+                            <p className="text-[10px] text-orange-400/80 font-medium mt-0.5">{person.role}</p>
+                            <p className="text-[10px] text-white/40 mt-1 line-clamp-2">{person.context}</p>
+                          </div>
+                          {isActive ? (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 px-2 text-[10px] text-red-400 hover:bg-red-500/10 hover:text-red-400 shrink-0"
+                              onClick={handleDismissWitness}
+                              disabled={isDismissing || isAiThinking}
+                            >
+                              {isDismissing ? <Loader2 className="w-3 h-3 animate-spin" /> : <X className="w-3 h-3" />}
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 px-2 text-[10px] text-orange-400 hover:bg-orange-400/10 hover:text-orange-400 shrink-0"
+                              onClick={() => handleCallWitness(person.id)}
+                              disabled={isCalling || isAiThinking}
+                            >
+                              {isCalling ? <Loader2 className="w-3 h-3 animate-spin" /> : "Call"}
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="p-4 border-t border-white/5 bg-black/40">
@@ -293,6 +426,38 @@ export default function Courtroom() {
 
         {/* Center — Transcript */}
         <main className="flex-1 flex flex-col min-w-0 bg-background/50 relative">
+
+          {/* Active Witness Banner */}
+          <AnimatePresence>
+            {activeWitness && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="shrink-0 px-6 py-2 bg-orange-400/10 border-b border-orange-400/20 flex items-center justify-between"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse" />
+                  <UserCheck className="w-4 h-4 text-orange-400" />
+                  <span className="text-sm font-semibold text-orange-400">
+                    On the Stand: <span className="text-white">{activeWitness.name}</span>
+                  </span>
+                  <span className="text-xs text-white/40">— {activeWitness.role}</span>
+                </div>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-xs text-red-400 hover:bg-red-500/10 hover:text-red-400 h-7"
+                  onClick={handleDismissWitness}
+                  disabled={isDismissing || isAiThinking}
+                >
+                  {isDismissing ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <X className="w-3 h-3 mr-1" />}
+                  Dismiss
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 md:p-10 transcript-scroll scroll-smooth">
             <div className="max-w-4xl mx-auto pb-40">
               <AnimatePresence initial={false}>
@@ -304,6 +469,7 @@ export default function Courtroom() {
                   <StreamingEntryCard
                     key="streaming"
                     role={streamState.activeRole}
+                    witnessName={streamState.activeWitnessName}
                     content={streamState.streamingContent}
                   />
                 )}
@@ -313,13 +479,23 @@ export default function Courtroom() {
                     key="typing-indicator"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className={`flex w-full mb-8 ${streamState.activeRole === "judge" ? "justify-center" : streamState.activeRole === "prosecutor" ? "justify-start" : "justify-end"}`}
+                    className={`flex w-full mb-8 ${
+                      streamState.activeRole === "judge" || streamState.activeRole === "witness"
+                        ? "justify-center"
+                        : streamState.activeRole === "prosecutor"
+                        ? "justify-start"
+                        : "justify-end"
+                    }`}
                   >
                     <div className="flex flex-col items-start space-y-2">
                       <span className="text-xs text-white/40 font-semibold uppercase tracking-widest ml-2">
-                        {streamState.activeRole} is speaking...
+                        {streamState.activeRole === "witness"
+                          ? `${streamState.activeWitnessName ?? "Witness"} is speaking...`
+                          : `${streamState.activeRole} is speaking...`}
                       </span>
-                      <TypingIndicator role={streamState.activeRole} />
+                      {streamState.activeRole !== "witness" && (
+                        <TypingIndicator role={streamState.activeRole} />
+                      )}
                     </div>
                   </motion.div>
                 )}
@@ -390,6 +566,15 @@ export default function Courtroom() {
                 </div>
               ) : (
                 <div className="flex flex-col space-y-3">
+                  {activeWitness && (
+                    <div className="flex items-center space-x-2 px-2 py-1 bg-orange-400/10 rounded-xl border border-orange-400/20">
+                      <UserCheck className="w-3 h-3 text-orange-400" />
+                      <span className="text-xs text-orange-400 font-semibold">
+                        {activeWitness.name} is on the stand — your statement will be directed to them
+                      </span>
+                    </div>
+                  )}
+
                   <div className="flex items-center justify-between px-2">
                     <div className="flex items-center space-x-3">
                       <Select value={selectedRole} onValueChange={(v: any) => setSelectedRole(v)}>
@@ -433,7 +618,11 @@ export default function Courtroom() {
                           handleSpeak();
                         }
                       }}
-                      placeholder="Type your statement to the court... (Enter to send, Shift+Enter for new line)"
+                      placeholder={
+                        activeWitness
+                          ? `Question ${activeWitness.name}... (Enter to send)`
+                          : "Type your statement to the court... (Enter to send, Shift+Enter for new line)"
+                      }
                       className="resize-none bg-black/40 border-white/10 text-base py-3 px-4 rounded-2xl focus:ring-primary/50"
                       rows={2}
                       disabled={isAiThinking}
@@ -456,34 +645,53 @@ export default function Courtroom() {
   );
 }
 
-function StreamingEntryCard({ role, content }: { role: "judge" | "prosecutor" | "defense"; content: string }) {
+function StreamingEntryCard({
+  role,
+  witnessName,
+  content,
+}: {
+  role: "judge" | "prosecutor" | "defense" | "witness";
+  witnessName?: string | null;
+  content: string;
+}) {
   const isJudge = role === "judge";
   const isProsecutor = role === "prosecutor";
+  const isWitness = role === "witness";
 
-  const colorClass = isJudge ? "primary" : isProsecutor ? "blue-500" : "emerald-500";
-  const textColor = isJudge ? "text-primary" : isProsecutor ? "text-blue-400" : "text-emerald-400";
-  const borderClass = isJudge ? "border-primary/30" : isProsecutor ? "border-blue-500/20" : "border-emerald-500/20";
-  const glowClass = isJudge ? "bg-primary" : isProsecutor ? "bg-blue-500" : "bg-emerald-500";
-  const speaker = isJudge ? "The Honorable Judge" : isProsecutor ? "Prosecution Counsel" : "Defense Counsel";
+  const textColor = isJudge ? "text-primary" : isProsecutor ? "text-blue-400" : isWitness ? "text-orange-400" : "text-emerald-400";
+  const borderClass = isJudge ? "border-primary/30" : isProsecutor ? "border-blue-500/20" : isWitness ? "border-orange-400/30" : "border-emerald-500/20";
+  const glowClass = isJudge ? "bg-primary" : isProsecutor ? "bg-blue-500" : isWitness ? "bg-orange-400" : "bg-emerald-500";
+  const iconBgClass = isJudge ? "bg-primary/20 text-primary" : isProsecutor ? "bg-blue-500/20 text-blue-400" : isWitness ? "bg-orange-400/20 text-orange-400" : "bg-emerald-500/20 text-emerald-400";
+  const speaker = isJudge ? "The Honorable Judge" : isProsecutor ? "Prosecution Counsel" : isWitness ? (witnessName ?? "Witness") : "Defense Counsel";
+  const alignment = isJudge || isWitness ? "justify-center" : isProsecutor ? "justify-start" : "justify-end";
+  const width = isJudge || isWitness ? "w-full md:w-[85%]" : "max-w-[80%] md:max-w-[70%]";
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      className={`flex w-full mb-8 ${isJudge ? "justify-center" : isProsecutor ? "justify-start" : "justify-end"}`}
+      className={`flex w-full mb-8 ${alignment}`}
     >
-      <div className={`${isJudge ? "w-full md:w-[85%]" : "max-w-[80%] md:max-w-[70%]"} relative group`}>
+      <div className={`${width} relative group`}>
         <div className={`absolute -inset-0.5 rounded-2xl opacity-30 blur-xl ${glowClass}`} />
         <div className={`relative glass-panel rounded-2xl p-6 md:p-8 ${borderClass}`}>
           <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-4">
             <div className="flex items-center space-x-3">
-              <div className={`p-2 rounded-xl bg-${colorClass}/20 ${textColor}`}>
+              <div className={`p-2 rounded-xl ${iconBgClass}`}>
                 {isJudge && <Scale className="w-5 h-5" />}
                 {isProsecutor && <Sword className="w-5 h-5" />}
-                {!isJudge && !isProsecutor && <Shield className="w-5 h-5" />}
+                {isWitness && <UserCheck className="w-5 h-5" />}
+                {!isJudge && !isProsecutor && !isWitness && <Shield className="w-5 h-5" />}
               </div>
               <div>
-                <h4 className={`font-display font-bold text-lg tracking-wide ${textColor}`}>{speaker}</h4>
+                <div className="flex items-center space-x-2">
+                  {isWitness && (
+                    <span className="text-[10px] uppercase tracking-widest font-bold text-orange-400/70 bg-orange-400/10 border border-orange-400/20 px-2 py-0.5 rounded-full">
+                      Witness
+                    </span>
+                  )}
+                  <h4 className={`font-display font-bold text-lg tracking-wide ${textColor}`}>{speaker}</h4>
+                </div>
                 <div className="flex items-center space-x-2 mt-0.5">
                   <Cpu className="w-3 h-3 text-white/40" />
                   <span className="text-xs text-white/40 font-semibold">AI — generating...</span>

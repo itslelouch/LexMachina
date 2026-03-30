@@ -11,6 +11,7 @@ import {
   type CourtPhase,
 } from "../lib/memory.js";
 import { PHASE_LABELS } from "../lib/prompts.js";
+import { extractPersonsFromText, mergePersons } from "../lib/aiEngine.js";
 
 const router: IRouter = Router();
 
@@ -43,6 +44,13 @@ router.post("/cases", async (req, res) => {
 
   const session = createNewCase(title, caseText, roles);
   await saveCase(session);
+
+  extractPersonsFromText(caseText)
+    .then((extracted) => {
+      session.persons = mergePersons(session.persons, extracted);
+      return saveCase(session);
+    })
+    .catch(() => {});
 
   res.status(201).json(session);
 });
@@ -112,6 +120,13 @@ router.post("/cases/:caseId/developments", async (req, res) => {
 
   addDevelopment(session, title, content);
   await saveCase(session);
+
+  extractPersonsFromText(`${title}: ${content}`)
+    .then((extracted) => {
+      session.persons = mergePersons(session.persons, extracted);
+      return saveCase(session);
+    })
+    .catch(() => {});
 
   res.json(session);
 });

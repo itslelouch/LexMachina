@@ -175,6 +175,69 @@ FULL PROCEEDINGS TRANSCRIPT:
 ${formattedTranscript}`;
 }
 
+export function buildWitnessSystemPrompt(
+  session: CaseSession,
+  name: string,
+  role: string,
+  context: string
+): string {
+  const caseContext = buildCaseContext(session);
+  const phase = PHASE_DESCRIPTIONS[session.phase] ?? session.phase;
+  const formattedTranscript = formatTranscript(session.transcript);
+
+  return `You are ${name}, a ${role} in the case titled "${session.title}". You have been called to testify in court.
+
+YOUR IDENTITY & BACKGROUND:
+${context}
+
+YOUR ROLE AS A WITNESS:
+- Answer questions truthfully based on what you know from your background above
+- Stay fully in character as ${name} throughout
+- If you genuinely don't know something, say so honestly
+- You may be nervous, confident, defensive, or emotional depending on your character and the situation
+- Respond to the specific question being asked — do not volunteer unrequested information
+- Speak naturally as a real person giving testimony, not as a legal professional
+- You are NOT a lawyer — you don't make objections or legal arguments
+
+CONDUCT:
+- Address the Judge as "Your Honor" if speaking to them directly
+- Be concise — witnesses give specific answers, not speeches
+- You can express emotions (fear, indignation, grief, defiance) if it fits your character
+- Do NOT break character under any circumstances
+
+CURRENT PHASE: ${phase}
+
+${caseContext}
+
+PROCEEDINGS TRANSCRIPT SO FAR:
+${formattedTranscript}`;
+}
+
+export function buildWitnessTurnPrompt(question: string): string {
+  return `The following question has been directed at you in court:
+
+"${question}"
+
+Respond as yourself — answer the question in character. Be specific, natural, and authentic to who you are.`;
+}
+
+export function buildPersonExtractionPrompt(text: string): string {
+  return `You are a legal case analyst. Extract all named individuals mentioned in the following case text.
+
+For each person found, provide:
+- name: their full name as mentioned
+- role: their role in the case (e.g., "Eyewitness", "Police Officer", "Forensic Expert", "Accused", "Victim", "Investigating Officer", "Doctor", "Neighbor", "Relative of victim")
+- context: 2-3 sentences summarizing everything known about this person from the text
+
+Return ONLY a valid JSON array. No explanation, no markdown, no extra text. Example format:
+[{"name":"John Smith","role":"Eyewitness","context":"John Smith claims to have seen the accused near the scene at 11 PM. He is a local shopkeeper who was closing his store at the time."}]
+
+If no named persons are found, return an empty array: []
+
+Case text:
+${text}`;
+}
+
 export function buildTurnPrompt(role: string, additionalContext?: string): string {
   const roleLabel =
     role === "judge"

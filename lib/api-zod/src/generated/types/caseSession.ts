@@ -10,6 +10,20 @@ import type { Development } from "./development";
 import type { RoleAssignment } from "./roleAssignment";
 import type { TranscriptEntry } from "./transcriptEntry";
 
+export interface CasePerson {
+  id: string;
+  name: string;
+  role: string;
+  context: string;
+}
+
+export interface ActiveWitness {
+  personId: string;
+  name: string;
+  role: string;
+  context: string;
+}
+
 export interface CaseSession {
   caseId: string;
   title: string;
@@ -18,6 +32,8 @@ export interface CaseSession {
   roles: RoleAssignment;
   transcript: TranscriptEntry[];
   developments: Development[];
+  persons: CasePerson[];
+  activeWitness: ActiveWitness | null;
   createdAt: string;
   updatedAt: string;
 }
