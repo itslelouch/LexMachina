@@ -1,4 +1,4 @@
-import { callLongCat } from "./longcat.js";
+import { callLongCat, streamLongCat } from "./longcat.js";
 import {
   buildJudgeSystemPrompt,
   buildProsecutorSystemPrompt,
@@ -12,54 +12,68 @@ import {
   type TranscriptEntry,
 } from "./memory.js";
 
-export async function generateAiStatement(
-  session: CaseSession,
-  role: "judge" | "prosecutor" | "defense",
-  additionalContext?: string
-): Promise<TranscriptEntry> {
-  let systemPrompt: string;
+type Role = "judge" | "prosecutor" | "defense";
 
-  if (role === "judge") {
-    systemPrompt = buildJudgeSystemPrompt(session);
-  } else if (role === "prosecutor") {
-    systemPrompt = buildProsecutorSystemPrompt(session);
-  } else {
-    systemPrompt = buildDefenseSystemPrompt(session);
-  }
+function buildMessages(session: CaseSession, role: Role, additionalContext?: string) {
+  let systemPrompt: string;
+  if (role === "judge") systemPrompt = buildJudgeSystemPrompt(session);
+  else if (role === "prosecutor") systemPrompt = buildProsecutorSystemPrompt(session);
+  else systemPrompt = buildDefenseSystemPrompt(session);
 
   const turnPrompt = buildTurnPrompt(role, additionalContext);
+  return [
+    { role: "system" as const, content: systemPrompt },
+    { role: "user" as const, content: turnPrompt },
+  ];
+}
 
-  const result = await callLongCat(
-    [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: turnPrompt },
-    ],
-    {
-      maxTokens: 1024,
-      temperature: 0.85,
-    }
-  );
-
+export async function generateAiStatement(
+  session: CaseSession,
+  role: Role,
+  additionalContext?: string
+): Promise<TranscriptEntry> {
+  const messages = buildMessages(session, role, additionalContext);
+  const result = await callLongCat(messages, { maxTokens: 1024, temperature: 0.85 });
   const entry = addTranscriptEntry(session, role, result.content, "ai");
   await saveCase(session);
-
   return entry;
 }
 
-export async function generateAllAiStatements(
-  session: CaseSession
+export async function streamAiStatement(
+  session: CaseSession,
+  role: Role,
+  onToken: (token: string) => void,
+  additionalContext?: string
+): Promise<TranscriptEntry> {
+  const messages = buildMessages(session, role, additionalContext);
+  const fullContent = await streamLongCat(
+    messages,
+    { maxTokens: 1024, temperature: 0.85 },
+    onToken
+  );
+  const entry = addTranscriptEntry(session, role, fullContent, "ai");
+  await saveCase(session);
+  return entry;
+}
+
+export async function streamAllAiStatements(
+  session: CaseSession,
+  onRoleStart: (role: Role) => void,
+  onToken: (role: Role, token: string) => void,
+  onRoleEntry: (role: Role, entry: TranscriptEntry) => void
 ): Promise<TranscriptEntry[]> {
   const entries: TranscriptEntry[] = [];
-
-  const order: Array<"judge" | "prosecutor" | "defense"> = [
-    "judge",
-    "prosecutor",
-    "defense",
-  ];
+  const order: Role[] = ["judge", "prosecutor", "defense"];
 
   for (const role of order) {
     if (session.roles[role] === "ai") {
-      const entry = await generateAiStatement(session, role);
+      onRoleStart(role);
+      const entry = await streamAiStatement(
+        session,
+        role,
+        (token) => onToken(role, token)
+      );
+      onRoleEntry(role, entry);
       entries.push(entry);
     }
   }
@@ -67,26 +81,37 @@ export async function generateAllAiStatements(
   return entries;
 }
 
-export async function generateAiResponsesAfterUserSpoke(
+export async function streamNextAiResponse(
   session: CaseSession,
-  speakingRole: "judge" | "prosecutor" | "defense"
+  speakingRole: Role,
+  onRoleStart: (role: Role) => void,
+  onToken: (role: Role, token: string) => void,
+  onRoleEntry: (role: Role, entry: TranscriptEntry) => void
+): Promise<TranscriptEntry | null> {
+  const order: Role[] = ["judge", "prosecutor", "defense"];
+  const nextRole = order.find((r) => r !== speakingRole && session.roles[r] === "ai");
+  if (!nextRole) return null;
+
+  onRoleStart(nextRole);
+  const entry = await streamAiStatement(
+    session,
+    nextRole,
+    (token) => onToken(nextRole, token)
+  );
+  onRoleEntry(nextRole, entry);
+  return entry;
+}
+
+export async function generateAllAiStatements(
+  session: CaseSession
 ): Promise<TranscriptEntry[]> {
   const entries: TranscriptEntry[] = [];
-
-  const responseOrder: Array<"judge" | "prosecutor" | "defense"> = [
-    "judge",
-    "prosecutor",
-    "defense",
-  ].filter((r) => r !== speakingRole) as Array<
-    "judge" | "prosecutor" | "defense"
-  >;
-
-  for (const role of responseOrder) {
+  const order: Role[] = ["judge", "prosecutor", "defense"];
+  for (const role of order) {
     if (session.roles[role] === "ai") {
       const entry = await generateAiStatement(session, role);
       entries.push(entry);
     }
   }
-
   return entries;
 }

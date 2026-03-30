@@ -1,16 +1,21 @@
 import type { CaseSession, TranscriptEntry } from "./memory.js";
 
 const PHASE_DESCRIPTIONS: Record<string, string> = {
-  opening_statements:
-    "Opening Statements — Both sides present their opening arguments to the court.",
-  prosecution_case:
-    "Prosecution Case — The prosecution presents evidence, witnesses, and arguments to prove guilt.",
-  defense_case:
-    "Defense Case — The defense presents its evidence, witnesses, and counter-arguments.",
-  closing_arguments:
-    "Closing Arguments — Both sides deliver their final summations to the court.",
+  opening_statements: "Opening Statements — Both sides present their opening arguments to the court.",
+  prosecution_case: "Prosecution Case — The prosecution presents evidence, witnesses, and arguments to prove guilt.",
+  defense_case: "Defense Case — The defense presents its evidence, witnesses, and counter-arguments.",
+  closing_arguments: "Closing Arguments — Both sides deliver their final summations to the court.",
   verdict: "Verdict — The Judge deliberates and delivers the final verdict.",
   concluded: "Case Concluded — The proceedings have ended.",
+};
+
+export const PHASE_LABELS: Record<string, string> = {
+  opening_statements: "Opening Statements",
+  prosecution_case: "Prosecution Case",
+  defense_case: "Defense Case",
+  closing_arguments: "Closing Arguments",
+  verdict: "Verdict",
+  concluded: "Concluded",
 };
 
 const SPEAKER_LABELS: Record<string, string> = {
@@ -20,12 +25,25 @@ const SPEAKER_LABELS: Record<string, string> = {
   system: "COURT",
 };
 
+const MAX_TRANSCRIPT_ENTRIES = 30;
+
 export function formatTranscript(transcript: TranscriptEntry[]): string {
   if (transcript.length === 0) {
     return "(No statements have been made yet. The court is about to begin.)";
   }
 
-  return transcript
+  const recent = transcript.length > MAX_TRANSCRIPT_ENTRIES
+    ? [
+        transcript[0],
+        ...transcript.slice(-(MAX_TRANSCRIPT_ENTRIES - 1))
+      ]
+    : transcript;
+
+  const prefix = transcript.length > MAX_TRANSCRIPT_ENTRIES
+    ? `[... ${transcript.length - MAX_TRANSCRIPT_ENTRIES} earlier entries omitted for brevity ...]\n\n`
+    : "";
+
+  return prefix + recent
     .map((entry) => {
       const label = SPEAKER_LABELS[entry.role] ?? entry.role.toUpperCase();
       return `[${label}]: ${entry.content}`;
@@ -37,10 +55,7 @@ function buildCaseContext(session: CaseSession): string {
   const developments =
     session.developments.length > 0
       ? `\n\nCASE DEVELOPMENTS FILED DURING PROCEEDINGS:\n${session.developments
-          .map(
-            (d, i) =>
-              `Development ${i + 1} - ${d.title}:\n${d.content}`
-          )
+          .map((d, i) => `Development ${i + 1} - ${d.title}:\n${d.content}`)
           .join("\n\n")}`
       : "";
 
@@ -50,10 +65,19 @@ CASE FILE / CHARGE SHEET:
 ${session.caseText}${developments}`;
 }
 
+const WITNESS_RULE = `
+CRITICAL RULE — WITNESSES AND THIRD PARTIES:
+There are EXACTLY THREE roles in this courtroom: Judge, Prosecutor, and Defense. There is NO fourth role.
+If a witness, police officer, detective, expert, or any other person needs to testify or speak:
+- The Prosecutor presents witness testimony by quoting them: e.g., "The witness, Officer Smith, stated: '...'"
+- The Defense cross-examines by referring to what the witness said, not by becoming the witness
+- The Judge directs proceedings: e.g., "The court calls [name] to the stand. Counsel may proceed."
+You must NEVER generate a transcript entry attributed to any person other than your role (Judge, Prosecutor, or Defense).
+All testimony, statements, and words of any other person must be QUOTED WITHIN your own statement.`;
+
 export function buildJudgeSystemPrompt(session: CaseSession): string {
   const caseContext = buildCaseContext(session);
-  const phase =
-    PHASE_DESCRIPTIONS[session.phase] ?? session.phase;
+  const phase = PHASE_DESCRIPTIONS[session.phase] ?? session.phase;
   const formattedTranscript = formatTranscript(session.transcript);
 
   return `You are the Honorable Judge presiding over this courtroom. You are impartial, authoritative, and deeply knowledgeable in the law. Your word is final in this court.
@@ -68,12 +92,13 @@ YOUR ROLE AND RESPONSIBILITIES:
 - Ensure both sides have a fair opportunity to present their case
 
 CONDUCT RULES:
-- Always be formal. Address parties as "Counsel", "the Prosecution", "the Defense", "the witness"
+- Always be formal. Address parties as "Counsel", "the Prosecution", "the Defense"
 - Never take sides — remain strictly impartial until the Verdict phase
 - Keep your statements concise and to the point; courtroom time is valuable
 - When ruling, briefly state your legal reasoning (1-2 sentences)
 - End each statement with an indication of who should speak next or what action is expected
 - Address the court by prefacing significant rulings with "The court rules..." or "Order!"
+${WITNESS_RULE}
 
 CURRENT PHASE: ${phase}
 
@@ -85,8 +110,7 @@ ${formattedTranscript}`;
 
 export function buildProsecutorSystemPrompt(session: CaseSession): string {
   const caseContext = buildCaseContext(session);
-  const phase =
-    PHASE_DESCRIPTIONS[session.phase] ?? session.phase;
+  const phase = PHASE_DESCRIPTIONS[session.phase] ?? session.phase;
   const formattedTranscript = formatTranscript(session.transcript);
 
   return `You are the Prosecuting Attorney representing the State/Plaintiff in this case. You are a seasoned litigator with sharp legal instincts, determined to prove the defendant's guilt beyond a reasonable doubt.
@@ -94,7 +118,7 @@ export function buildProsecutorSystemPrompt(session: CaseSession): string {
 YOUR ROLE AND RESPONSIBILITIES:
 - Deliver a compelling opening statement that previews your case theory
 - Present evidence methodically and persuasively, citing specific facts from the case file
-- Conduct direct examination of prosecution witnesses
+- When calling witnesses, quote their testimony directly within your statement
 - Cross-examine defense witnesses to expose inconsistencies
 - Raise timely objections (state: "Objection, Your Honor — [legal basis]")
 - Deliver a powerful closing argument summarizing the evidence and requesting a specific verdict
@@ -107,6 +131,7 @@ CONDUCT RULES:
 - Never fabricate evidence; only use what is in the case file and developments
 - When making objections: state the legal basis (hearsay, relevance, leading question, etc.)
 - Your tone is confident, precise, and professional — not aggressive or theatrical
+${WITNESS_RULE}
 
 CURRENT PHASE: ${phase}
 
@@ -118,8 +143,7 @@ ${formattedTranscript}`;
 
 export function buildDefenseSystemPrompt(session: CaseSession): string {
   const caseContext = buildCaseContext(session);
-  const phase =
-    PHASE_DESCRIPTIONS[session.phase] ?? session.phase;
+  const phase = PHASE_DESCRIPTIONS[session.phase] ?? session.phase;
   const formattedTranscript = formatTranscript(session.transcript);
 
   return `You are the Defense Attorney representing the defendant. Your paramount duty is to your client — to provide them the best possible defense and to create reasonable doubt in every aspect of the prosecution's case.
@@ -128,7 +152,7 @@ YOUR ROLE AND RESPONSIBILITIES:
 - Deliver a compelling opening statement establishing your defense theory
 - Challenge the prosecution's evidence and attack its admissibility, credibility, and sufficiency
 - Present alternative explanations for the facts
-- Conduct direct examination of defense witnesses
+- When calling witnesses, quote their testimony directly within your statement
 - Vigorously cross-examine prosecution witnesses to expose weaknesses, bias, or inconsistency
 - Raise timely objections (state: "Objection, Your Honor — [legal basis]")
 - Deliver a powerful closing argument highlighting reasonable doubt and requesting acquittal or a favorable verdict
@@ -141,6 +165,7 @@ CONDUCT RULES:
 - When making objections: state the legal basis (hearsay, relevance, speculation, etc.)
 - Your tone is confident, strategic, and empathetic toward your client's situation
 - Never concede ground without getting something in return
+${WITNESS_RULE}
 
 CURRENT PHASE: ${phase}
 
@@ -150,10 +175,7 @@ FULL PROCEEDINGS TRANSCRIPT:
 ${formattedTranscript}`;
 }
 
-export function buildTurnPrompt(
-  role: string,
-  additionalContext?: string
-): string {
+export function buildTurnPrompt(role: string, additionalContext?: string): string {
   const roleLabel =
     role === "judge"
       ? "Judge"
@@ -169,7 +191,8 @@ export function buildTurnPrompt(
 
 Important:
 - Stay fully in character as the ${roleLabel}
-- Your response should be a realistic, substantive courtroom statement
+- Your response should be a realistic, substantive courtroom statement (2-5 sentences)
 - Do not include stage directions, internal thoughts, or meta-commentary
-- Speak naturally as you would in a real courtroom`;
+- Speak naturally as you would in a real courtroom
+- Do NOT speak as or become any witness, police officer, detective, or other person`;
 }

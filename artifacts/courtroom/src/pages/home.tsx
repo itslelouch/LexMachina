@@ -1,41 +1,45 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { Scale, FileText, Settings2, Play, AlertCircle, ChevronRight, Gavel } from "lucide-react";
-import { useListCases, useCreateCase } from "@/hooks/use-courtroom";
+import { Scale, FileText, Settings2, Play, AlertCircle, ChevronRight, Gavel, Trash2 } from "lucide-react";
+import { useListCases, useCreateCase, useDeleteCase } from "@/hooks/use-courtroom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
+
+const PHASE_LABELS: Record<string, string> = {
+  opening_statements: "Opening Statements",
+  prosecution_case: "Prosecution Case",
+  defense_case: "Defense Case",
+  closing_arguments: "Closing Arguments",
+  verdict: "Verdict",
+  concluded: "Concluded",
+};
 
 export default function Home() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { data: caseList, isLoading: loadingCases } = useListCases();
   const createCase = useCreateCase();
+  const deleteCase = useDeleteCase();
 
   const [title, setTitle] = useState("");
   const [caseText, setCaseText] = useState("");
-  const [roles, setRoles] = useState({
-    judge: true,
-    prosecutor: true,
-    defense: true
-  });
+  const [roles, setRoles] = useState({ judge: false, prosecutor: false, defense: false });
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const handleStartSession = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !caseText.trim()) {
-      toast({
-        title: "Missing fields",
-        description: "Please provide both a title and case file context.",
-        variant: "destructive",
-      });
+      toast({ title: "Missing fields", description: "Please provide both a title and case file context.", variant: "destructive" });
       return;
     }
-
     try {
       const newCase = await createCase.mutateAsync({
         data: {
@@ -45,30 +49,34 @@ export default function Home() {
             judge: roles.judge ? "user" : "ai",
             prosecutor: roles.prosecutor ? "user" : "ai",
             defense: roles.defense ? "user" : "ai",
-          }
-        }
+          },
+        },
       });
-      
-      toast({
-        title: "Court is now in session",
-        description: "Entering the courtroom...",
-      });
-      
+      toast({ title: "Court is now in session", description: "Entering the courtroom..." });
       navigate(`/case/${newCase.caseId}`);
-    } catch (err) {
-      toast({
-        title: "Error creating case",
-        description: "Something went wrong. Please try again.",
-        variant: "destructive",
-      });
+    } catch {
+      toast({ title: "Error creating case", description: "Something went wrong. Please try again.", variant: "destructive" });
+    }
+  };
+
+  const handleDeleteCase = async (caseId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setDeletingId(caseId);
+    try {
+      await deleteCase.mutateAsync({ caseId });
+      queryClient.invalidateQueries({ queryKey: ["/api/cases"] });
+      toast({ title: "Case dismissed", description: "The proceeding has been sealed." });
+    } catch {
+      toast({ title: "Failed to delete", variant: "destructive" });
+    } finally {
+      setDeletingId(null);
     }
   };
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-background">
-      {/* Background Image & Overlay */}
       <div className="absolute inset-0 z-0">
-        <img 
+        <img
           src={`${import.meta.env.BASE_URL}images/courtroom-bg.png`}
           alt="Dark majestic courtroom"
           className="w-full h-full object-cover opacity-30 mix-blend-overlay"
@@ -77,16 +85,16 @@ export default function Home() {
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-24">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
           className="text-center mb-16"
         >
           <div className="flex justify-center mb-6">
-            <img 
-              src={`${import.meta.env.BASE_URL}images/logo.png`} 
-              alt="Lex Machina Logo" 
+            <img
+              src={`${import.meta.env.BASE_URL}images/logo.png`}
+              alt="Lex Machina Logo"
               className="w-24 h-24 rounded-2xl shadow-2xl shadow-primary/20 animate-float"
             />
           </div>
@@ -99,9 +107,9 @@ export default function Home() {
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
-          
+
           {/* Create New Case Form */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
@@ -109,7 +117,7 @@ export default function Home() {
           >
             <div className="glass-panel p-8 md:p-10 rounded-3xl relative overflow-hidden">
               <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
-              
+
               <div className="flex items-center space-x-4 mb-8">
                 <Gavel className="w-8 h-8 text-primary" />
                 <h2 className="text-3xl font-display font-bold">Commence Proceeding</h2>
@@ -118,7 +126,7 @@ export default function Home() {
               <form onSubmit={handleStartSession} className="space-y-8 relative z-10">
                 <div className="space-y-3">
                   <Label htmlFor="title" className="text-lg text-white/90">Case Docket Title</Label>
-                  <Input 
+                  <Input
                     id="title"
                     value={title}
                     onChange={e => setTitle(e.target.value)}
@@ -134,7 +142,7 @@ export default function Home() {
                       <AlertCircle className="w-3 h-3 mr-1" /> Provides context to all AI models
                     </span>
                   </div>
-                  <Textarea 
+                  <Textarea
                     id="caseText"
                     value={caseText}
                     onChange={e => setCaseText(e.target.value)}
@@ -148,32 +156,19 @@ export default function Home() {
                     <Settings2 className="w-5 h-5 text-primary" />
                     <h3 className="text-xl font-display font-semibold">Role Assignments</h3>
                   </div>
-                  <p className="text-sm text-muted-foreground mb-6">Select which roles you wish to control. Unselected roles will be autonomously powered by the LongCat API.</p>
-                  
+                  <p className="text-sm text-muted-foreground mb-6">
+                    Select which roles you wish to control. Unselected roles will be autonomously powered by AI. Leave all off to watch the entire trial unfold on its own.
+                  </p>
+
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                    <RoleSwitch 
-                      label="The Judge" 
-                      color="bg-primary/20 text-primary border-primary/30"
-                      checked={roles.judge}
-                      onChange={(checked) => setRoles(r => ({...r, judge: checked}))}
-                    />
-                    <RoleSwitch 
-                      label="Prosecutor" 
-                      color="bg-blue-500/20 text-blue-400 border-blue-500/30"
-                      checked={roles.prosecutor}
-                      onChange={(checked) => setRoles(r => ({...r, prosecutor: checked}))}
-                    />
-                    <RoleSwitch 
-                      label="Defense" 
-                      color="bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
-                      checked={roles.defense}
-                      onChange={(checked) => setRoles(r => ({...r, defense: checked}))}
-                    />
+                    <RoleSwitch label="The Judge" color="bg-primary/20 text-primary border-primary/30" checked={roles.judge} onChange={(v) => setRoles(r => ({ ...r, judge: v }))} />
+                    <RoleSwitch label="Prosecutor" color="bg-blue-500/20 text-blue-400 border-blue-500/30" checked={roles.prosecutor} onChange={(v) => setRoles(r => ({ ...r, prosecutor: v }))} />
+                    <RoleSwitch label="Defense" color="bg-emerald-500/20 text-emerald-400 border-emerald-500/30" checked={roles.defense} onChange={(v) => setRoles(r => ({ ...r, defense: v }))} />
                   </div>
                 </div>
 
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   disabled={createCase.isPending}
                   className="w-full h-16 text-lg font-bold rounded-xl bg-gradient-to-r from-primary/90 to-primary hover:from-primary hover:to-amber-400 text-primary-foreground shadow-[0_0_40px_rgba(212,175,55,0.2)] hover:shadow-[0_0_60px_rgba(212,175,55,0.4)] transition-all duration-300"
                 >
@@ -185,7 +180,7 @@ export default function Home() {
           </motion.div>
 
           {/* Recent Cases Sidebar */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
@@ -200,49 +195,52 @@ export default function Home() {
               <div className="flex-1 overflow-y-auto pr-2 space-y-3 transcript-scroll">
                 {loadingCases ? (
                   <div className="text-center py-10 text-white/30">Retrieving records...</div>
-                ) : caseList?.cases?.length === 0 ? (
+                ) : !caseList?.cases?.length ? (
                   <div className="text-center py-10 text-white/30">No active cases found.</div>
                 ) : (
-                  caseList?.cases?.map((c) => (
-                    <button
+                  caseList.cases.map((c) => (
+                    <div
                       key={c.caseId}
+                      className="w-full text-left p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-primary/50 transition-all duration-200 group cursor-pointer relative"
                       onClick={() => navigate(`/case/${c.caseId}`)}
-                      className="w-full text-left p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-primary/50 transition-all duration-200 group"
                     >
-                      <h4 className="font-semibold text-white/90 truncate pr-4">{c.title}</h4>
+                      <h4 className="font-semibold text-white/90 truncate pr-10">{c.title}</h4>
                       <div className="flex items-center justify-between mt-2">
                         <span className="text-xs text-primary font-medium px-2 py-0.5 rounded-full bg-primary/10">
-                          {c.phase.replace('_', ' ').toUpperCase()}
+                          {PHASE_LABELS[c.phase] ?? c.phase.replace(/_/g, " ")}
                         </span>
                         <ChevronRight className="w-4 h-4 text-white/30 group-hover:text-primary transition-colors" />
                       </div>
                       <div className="text-[10px] text-white/40 mt-3 font-mono">
                         {format(new Date(c.createdAt), "MMM dd, yyyy • HH:mm")}
                       </div>
-                    </button>
+                      <button
+                        onClick={(e) => handleDeleteCase(c.caseId, e)}
+                        disabled={deletingId === c.caseId}
+                        className="absolute top-3 right-3 p-1.5 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-red-500/20 text-white/30 hover:text-red-400 transition-all"
+                        title="Dismiss case"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   ))
                 )}
               </div>
             </div>
           </motion.div>
-
         </div>
       </div>
     </div>
   );
 }
 
-function RoleSwitch({ label, color, checked, onChange }: { label: string, color: string, checked: boolean, onChange: (val: boolean) => void }) {
+function RoleSwitch({ label, color, checked, onChange }: { label: string; color: string; checked: boolean; onChange: (val: boolean) => void }) {
   return (
-    <div className={`p-4 rounded-xl border flex flex-col justify-between h-28 transition-colors ${checked ? color : 'border-white/5 bg-white/5 text-white/50'}`}>
+    <div className={`p-4 rounded-xl border flex flex-col justify-between h-28 transition-colors ${checked ? color : "border-white/5 bg-white/5 text-white/50"}`}>
       <div className="font-semibold">{label}</div>
       <div className="flex items-center justify-between">
         <span className="text-xs font-bold uppercase tracking-wider">{checked ? "User" : "AI"}</span>
-        <Switch 
-          checked={checked} 
-          onCheckedChange={onChange}
-          className={checked ? "data-[state=checked]:bg-current" : ""}
-        />
+        <Switch checked={checked} onCheckedChange={onChange} className={checked ? "data-[state=checked]:bg-current" : ""} />
       </div>
     </div>
   );

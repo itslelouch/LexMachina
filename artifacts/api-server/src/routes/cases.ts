@@ -6,9 +6,11 @@ import {
   deleteCase,
   listCases as listAllCases,
   addDevelopment,
+  addTranscriptEntry,
   type RoleAssignment,
   type CourtPhase,
 } from "../lib/memory.js";
+import { PHASE_LABELS } from "../lib/prompts.js";
 
 const router: IRouter = Router();
 
@@ -138,9 +140,20 @@ router.put("/cases/:caseId/phase", async (req, res) => {
     return;
   }
 
+  const oldPhase = session.phase;
   session.phase = phase;
-  await saveCase(session);
 
+  if (oldPhase !== phase) {
+    const phaseLabel = PHASE_LABELS[phase] ?? phase.replace(/_/g, " ");
+    addTranscriptEntry(
+      session,
+      "system",
+      `⚖️ The court has advanced to: ${phaseLabel.toUpperCase()}`,
+      "system"
+    );
+  }
+
+  await saveCase(session);
   res.json(session);
 });
 
