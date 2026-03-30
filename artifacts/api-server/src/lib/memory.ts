@@ -92,6 +92,7 @@ export type CaseSession = {
   evidence: EvidenceItem[];
   jurySentiment: JurySentiment;
   verdict?: Verdict;
+  appealMode?: boolean;
   createdAt: string;
   updatedAt: string;
 };
@@ -234,15 +235,24 @@ export function addTranscriptEntry(
 
   session.transcript.push(entry);
 
-  // Update jury sentiment based on AI entries
-  if (controlledBy === "ai" && (role === "prosecutor" || role === "defense")) {
+  // Update jury sentiment — zero-sum between prosecution and defense, neutral absorbs the rest
+  if (controlledBy !== "system" && (role === "prosecutor" || role === "defense")) {
     const shift = Math.floor(Math.random() * 5) + 1;
+    const J = session.jurySentiment;
     if (role === "prosecutor") {
-      session.jurySentiment.prosecution = Math.min(85, session.jurySentiment.prosecution + shift);
-      session.jurySentiment.defense = Math.max(15, session.jurySentiment.defense - shift);
+      J.prosecution = Math.min(85, J.prosecution + shift);
     } else {
-      session.jurySentiment.defense = Math.min(85, session.jurySentiment.defense + shift);
-      session.jurySentiment.prosecution = Math.max(15, session.jurySentiment.prosecution - shift);
+      J.defense = Math.min(85, J.defense + shift);
+    }
+    // Neutral absorbs the excess so the total always sums to 100
+    J.neutral = Math.max(0, 100 - J.prosecution - J.defense);
+    if (J.neutral === 0) {
+      // If neutral ran dry, reduce the losing side to keep total at 100
+      if (role === "prosecutor") {
+        J.defense = Math.max(0, 100 - J.prosecution);
+      } else {
+        J.prosecution = Math.max(0, 100 - J.defense);
+      }
     }
   }
 
@@ -281,14 +291,19 @@ export function addEvidence(
   description: string,
   submittedBy: "prosecution" | "defense"
 ): EvidenceItem {
-  const exhibitLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const usedExhibits = new Set(session.evidence.map((e) => e.exhibit.replace(/^Exhibit\s+/i, "")));
-  let exhibitLabel = "A";
-  for (const letter of exhibitLetters) {
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  let exhibitLabel = `${session.evidence.length + 1}`;
+  for (const letter of letters) {
     if (!usedExhibits.has(letter)) {
       exhibitLabel = letter;
       break;
     }
+  }
+  // Fallback for 27+ exhibits: use AA, AB, AC... style labels
+  if (usedExhibits.has(exhibitLabel)) {
+    let n = session.evidence.length + 1;
+    exhibitLabel = String(n);
   }
 
   const item: EvidenceItem = {

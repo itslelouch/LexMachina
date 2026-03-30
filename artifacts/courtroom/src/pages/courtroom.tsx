@@ -93,7 +93,7 @@ export default function Courtroom() {
   const [evidenceDesc, setEvidenceDesc] = useState("");
   const [evidenceSide, setEvidenceSide] = useState<"prosecution" | "defense">("prosecution");
   const [isSubmittingEvidence, setIsSubmittingEvidence] = useState(false);
-  const [isAppealMode, setIsAppealMode] = useState(false);
+  const isAppealMode = session?.appealMode ?? false;
 
   const pendingRolesRef = useRef<typeof session.roles | null>(null);
   const rolesTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -740,7 +740,7 @@ export default function Courtroom() {
                 <p className="text-[10px] text-white/30 mb-4">Shifts with each AI attorney statement. Reflects perceived juror leanings.</p>
 
                 {(["prosecution", "defense", "neutral"] as const).map((side) => {
-                  const jurySentiment = (session as any).jurySentiment ?? { prosecution: 40, defense: 40, neutral: 20 };
+                  const jurySentiment = session.jurySentiment ?? { prosecution: 40, defense: 40, neutral: 20 };
                   const val = jurySentiment[side] ?? 20;
                   const colors = {
                     prosecution: { bar: "bg-blue-500", label: "text-blue-400", border: "border-blue-500/20", bg: "bg-blue-500/10" },
@@ -765,11 +765,11 @@ export default function Courtroom() {
                 })}
               </div>
 
-              {(session as any).verdict && (
+              {session.verdict && (
                 <div className="p-4 bg-primary/10 border border-primary/30 rounded-xl">
                   <div className="text-[10px] uppercase font-bold tracking-wider text-primary/70 mb-2">Verdict Rendered</div>
-                  <div className="text-sm font-bold text-primary mb-1">{(session as any).verdict.outcome}</div>
-                  <p className="text-[11px] text-white/60">{(session as any).verdict.summary}</p>
+                  <div className="text-sm font-bold text-primary mb-1">{session.verdict.outcome}</div>
+                  <p className="text-[11px] text-white/60">{session.verdict.summary}</p>
                 </div>
               )}
 
@@ -780,9 +780,12 @@ export default function Courtroom() {
                     <Button
                       variant="outline"
                       className="w-full border-orange-500/30 text-orange-400 hover:bg-orange-500/10 hover:text-orange-400 gap-2"
+                      disabled={updatePhase.isPending}
                       onClick={() => {
-                        setIsAppealMode(true);
-                        updatePhase.mutate({ caseId, data: { phase: "closing_arguments" } });
+                        updatePhase.mutate(
+                          { caseId, data: { phase: "closing_arguments", appealMode: true } as any },
+                          { onSuccess: () => { streamAutoProceed(); } }
+                        );
                         toast({ title: "Appeal Filed", description: "The case has been remanded for closing arguments." });
                       }}
                     >
@@ -803,8 +806,11 @@ export default function Courtroom() {
             <Button
               variant="outline"
               className="w-full justify-between bg-white/5 border-white/10 hover:bg-white/10 hover:text-white"
-              onClick={() => updatePhase.mutate({ caseId, data: { phase: NEXT_PHASE[session.phase] } })}
-              disabled={session.phase === "concluded" || updatePhase.isPending}
+              onClick={() => updatePhase.mutate(
+                { caseId, data: { phase: NEXT_PHASE[session.phase] } },
+                { onSuccess: () => streamAutoProceed() }
+              )}
+              disabled={session.phase === "concluded" || updatePhase.isPending || isAiThinking}
             >
               <span>Advance Proceeding</span>
               <ChevronRight className="w-4 h-4" />

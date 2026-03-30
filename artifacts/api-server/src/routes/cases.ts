@@ -145,7 +145,7 @@ router.post("/cases/:caseId/developments", async (req, res) => {
 
 router.put("/cases/:caseId/phase", async (req, res) => {
   const { caseId } = req.params;
-  const { phase } = req.body as { phase?: CourtPhase };
+  const { phase, appealMode } = req.body as { phase?: CourtPhase; appealMode?: boolean };
 
   const validPhases: CourtPhase[] = [
     "opening_statements",
@@ -169,6 +169,7 @@ router.put("/cases/:caseId/phase", async (req, res) => {
 
   const oldPhase = session.phase;
   session.phase = phase;
+  if (appealMode !== undefined) session.appealMode = appealMode;
 
   if (oldPhase !== phase) {
     const phaseLabel = PHASE_LABELS[phase] ?? phase.replace(/_/g, " ");

@@ -84,13 +84,43 @@ export async function streamWitnessResponse(
 
 export async function streamAllAiStatements(
   session: CaseSession,
-  onRoleStart: (role: Role) => void,
-  onToken: (role: Role, token: string) => void,
-  onRoleEntry: (role: Role, entry: TranscriptEntry) => void
+  onRoleStart: (role: Role | "witness") => void,
+  onToken: (role: Role | "witness", token: string) => void,
+  onRoleEntry: (role: Role | "witness", entry: TranscriptEntry) => void
 ): Promise<TranscriptEntry[]> {
   const entries: TranscriptEntry[] = [];
-  const order: Role[] = ["judge", "prosecutor", "defense"];
 
+  // When a witness is on the stand, do a questioning round instead of the regular AI round
+  if (session.activeWitness) {
+    const { name, role: witnessRole } = session.activeWitness;
+    const examiner: Role | null =
+      session.roles.prosecutor === "ai" ? "prosecutor" :
+      session.roles.defense === "ai" ? "defense" : null;
+
+    if (examiner) {
+      onRoleStart(examiner);
+      const questionEntry = await streamAiStatement(
+        session,
+        examiner,
+        (token) => onToken(examiner, token),
+        `You are currently examining ${name} (${witnessRole}). Ask a relevant follow-up question based on their testimony so far.`
+      );
+      onRoleEntry(examiner, questionEntry);
+      entries.push(questionEntry);
+
+      onRoleStart("witness");
+      const witnessEntry = await streamWitnessResponse(
+        session,
+        questionEntry.content,
+        (token) => onToken("witness", token)
+      );
+      onRoleEntry("witness", witnessEntry);
+      entries.push(witnessEntry);
+    }
+    return entries;
+  }
+
+  const order: Role[] = ["judge", "prosecutor", "defense"];
   for (const role of order) {
     if (session.roles[role] === "ai") {
       onRoleStart(role);
@@ -111,7 +141,9 @@ export async function streamNextAiResponse(
   onToken: (role: Role | "witness", token: string) => void,
   onRoleEntry: (role: Role | "witness", entry: TranscriptEntry) => void
 ): Promise<TranscriptEntry | null> {
-  if (session.activeWitness && speakingRole !== "witness") {
+  // Route to witness only when Prosecutor or Defense speaks — not when Judge rules
+  const witnessQuestioners: (Role | "witness")[] = ["prosecutor", "defense"];
+  if (session.activeWitness && witnessQuestioners.includes(speakingRole)) {
     onRoleStart("witness");
     const entry = await streamWitnessResponse(
       session,
@@ -123,26 +155,34 @@ export async function streamNextAiResponse(
   }
 
   const order: Role[] = ["judge", "prosecutor", "defense"];
-  const nextRole = order.find(
+
+  // Collect ALL AI roles that should respond (not just the first one)
+  // This ensures Defense also speaks when user is Judge
+  const aiRoles = order.filter(
     (r) => r !== speakingRole && session.roles[r] === "ai"
   );
-  if (!nextRole) return null;
+  if (aiRoles.length === 0) return null;
 
-  // Determine if the triggering speaker was a human player
+  // Only inject human context for the first responding role
   const speakingRoleAssignment = speakingRole === "witness" ? "ai" : session.roles[speakingRole as Role];
   const humanContext = speakingRoleAssignment === "user" && lastUserMessage
     ? `The previous statement was made by a HUMAN PLAYER who may be using informal language. They said: "${lastUserMessage}". Interpret their intent charitably and respond directly to the substance of what they meant. Keep the proceedings moving.`
     : undefined;
 
-  onRoleStart(nextRole);
-  const entry = await streamAiStatement(
-    session,
-    nextRole,
-    (token) => onToken(nextRole, token),
-    humanContext
-  );
-  onRoleEntry(nextRole, entry);
-  return entry;
+  let lastEntry: TranscriptEntry | null = null;
+  for (let i = 0; i < aiRoles.length; i++) {
+    const role = aiRoles[i];
+    onRoleStart(role);
+    const entry = await streamAiStatement(
+      session,
+      role,
+      (token) => onToken(role, token),
+      i === 0 ? humanContext : undefined
+    );
+    onRoleEntry(role, entry);
+    lastEntry = entry;
+  }
+  return lastEntry;
 }
 
 export async function generateAllAiStatements(

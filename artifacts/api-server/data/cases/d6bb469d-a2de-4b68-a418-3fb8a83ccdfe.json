@@ -27,8 +27,8 @@
   "demeanor": "theatrical",
   "evidence": [],
   "jurySentiment": {
-    "prosecution": 60,
-    "defense": 20,
+    "prosecution": 71,
+    "defense": 15,
     "neutral": 20
   },
   "caseId": "d6bb469d-a2de-4b68-a418-3fb8a83ccdfe",
@@ -504,9 +504,57 @@
       "content": "Dinesh Sharma has been dismissed from the stand. Thank you for your testimony.",
       "timestamp": "2026-03-30T07:43:56.922Z",
       "controlledBy": "system"
+    },
+    {
+      "id": "51014fd8-f72b-4aab-aff8-559c1c8fa2d2",
+      "role": "judge",
+      "speaker": "The Honorable Judge",
+      "content": "Defence council has anything to say ?",
+      "timestamp": "2026-03-30T07:44:14.093Z",
+      "controlledBy": "user"
+    },
+    {
+      "id": "52dad29e-6dd4-404b-9b8c-d2ddd1027939",
+      "role": "prosecutor",
+      "speaker": "Prosecution Counsel",
+      "content": "Your Honor, the State rests its case on the unshaken testimony of Dinesh Sharma—a firsthand eyewitness who saw the accused, Ravinder, strike the victim with brutal force, witnessed the immediate aftermath of the assault, and observed bloodstains on the accused’s clothing. This testimony is corroborated by the postmortem report confirming death due to blunt force trauma and the recovery of blood-stained garments directly from the accused, forming a complete and unbroken chain of evidence under Section 302 IPC. The prosecution submits that the totality of this proof leaves no reasonable doubt that Ravinder is guilty of murder, and we urge the court to convict accordingly.",
+      "timestamp": "2026-03-30T07:44:23.427Z",
+      "controlledBy": "ai"
+    },
+    {
+      "id": "56266fe8-548d-458b-9b66-7d6a8e7250eb",
+      "role": "judge",
+      "speaker": "The Honorable Judge",
+      "content": "Defence council?",
+      "timestamp": "2026-03-30T07:45:31.867Z",
+      "controlledBy": "user"
+    },
+    {
+      "id": "0e163a84-2790-4d06-9ad6-2b0f3a2fe48c",
+      "role": "prosecutor",
+      "speaker": "Prosecution Counsel",
+      "content": "Your Honor, the State has presented clear and compelling evidence—eyewitness testimony, forensic medical findings, and physical evidence—all converging to prove that Ravinder committed the brutal murder of Deepak. The defense has offered no rebuttal, no alternative explanation, and no challenge to the credibility of the witness or the integrity of the investigation. Given the unbroken chain of evidence and the absence of any reasonable doubt raised by the defense, the prosecution respectfully submits that the accused must be held accountable under Section 302 of the IPC.",
+      "timestamp": "2026-03-30T07:45:50.587Z",
+      "controlledBy": "ai"
+    },
+    {
+      "id": "bba41cb5-e88c-41c3-bbb8-8c6d0a59970f",
+      "role": "judge",
+      "speaker": "The Honorable Judge",
+      "content": "I am sending ravindra to jail for murder ",
+      "timestamp": "2026-03-30T07:46:02.997Z",
+      "controlledBy": "user"
+    },
+    {
+      "id": "ce26f890-1d2f-49ae-a836-2dc4fe5195bf",
+      "role": "prosecutor",
+      "speaker": "Prosecution Counsel",
+      "content": "Your Honor, the prosecution welcomes the court’s recognition of the gravity of this crime. The evidence—eyewitness testimony, forensic confirmation of fatal blunt force trauma, and blood-stained clothing recovered directly from the accused—leaves no doubt that Ravinder committed murder under Section 302 IPC. We now urge the court to formally pronounce conviction and impose a sentence commensurate with the brutality of this offense, ensuring justice for Deepak and his grieving family.",
+      "timestamp": "2026-03-30T07:46:08.219Z",
+      "controlledBy": "ai"
     }
   ],
   "developments": [],
   "createdAt": "2026-03-30T07:09:16.069Z",
-  "updatedAt": "2026-03-30T07:43:56.922Z"
+  "updatedAt": "2026-03-30T07:46:08.220Z"
 }

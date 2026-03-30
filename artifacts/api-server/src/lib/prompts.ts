@@ -221,7 +221,7 @@ export function formatTranscript(transcript: TranscriptEntry[]): string {
   return prefix + recent
     .map((entry) => {
       const label = SPEAKER_LABELS[entry.role] ?? entry.role.toUpperCase();
-      const sourceTag = entry.source === "user" ? " [HUMAN PLAYER]" : "";
+      const sourceTag = entry.controlledBy === "user" ? " [HUMAN PLAYER]" : "";
       return `[${label}${sourceTag}]: ${entry.content}`;
     })
     .join("\n\n");

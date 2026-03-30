@@ -9,6 +9,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader,
+  AlertDialogTitle, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogCancel, AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import type { LegalSystem, AIDemeanor } from "@workspace/api-client-react";
@@ -83,8 +88,7 @@ export default function Home() {
     }
   };
 
-  const handleDeleteCase = async (caseId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleDeleteCase = async (caseId: string) => {
     setDeletingId(caseId);
     try {
       await deleteCase.mutateAsync({ caseId });
@@ -319,16 +323,37 @@ export default function Home() {
                             </span>
                           )}
                         </div>
-                        <button
-                          onClick={(e) => handleDeleteCase(c.caseId, e)}
-                          disabled={deletingId === c.caseId}
-                          className="absolute top-3 right-3 p-1.5 rounded-lg hover:bg-red-500/20 text-white/20 hover:text-red-400 active:text-red-400 transition-all md:opacity-0 md:group-hover:opacity-100"
-                          title="Delete case"
-                        >
-                          {deletingId === c.caseId
-                            ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            : <Trash2 className="w-3.5 h-3.5" />}
-                        </button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <button
+                              onClick={(e) => e.stopPropagation()}
+                              disabled={deletingId === c.caseId}
+                              className="absolute top-3 right-3 p-1.5 rounded-lg hover:bg-red-500/20 text-white/20 hover:text-red-400 active:text-red-400 transition-all md:opacity-0 md:group-hover:opacity-100"
+                              title="Delete case"
+                            >
+                              {deletingId === c.caseId
+                                ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                : <Trash2 className="w-3.5 h-3.5" />}
+                            </button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete this case?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                "{c.title}" will be permanently sealed and removed. This cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                className="bg-red-600 hover:bg-red-700 text-white"
+                                onClick={() => handleDeleteCase(c.caseId)}
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     );
                   })
