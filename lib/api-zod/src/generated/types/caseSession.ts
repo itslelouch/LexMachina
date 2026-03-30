@@ -15,6 +15,7 @@ export interface CasePerson {
   name: string;
   role: string;
   context: string;
+  deceased: boolean;
 }
 
 export interface ActiveWitness {

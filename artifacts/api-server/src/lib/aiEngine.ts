@@ -172,6 +172,7 @@ export async function extractPersonsFromText(text: string): Promise<Omit<CasePer
         name: String(p.name).trim(),
         role: String(p.role).trim(),
         context: String(p.context).trim(),
+        deceased: Boolean(p.deceased),
       }));
   } catch {
     return [];

@@ -1,52 +1,60 @@
 {
   "persons": [
     {
+      "id": "edf1936f-5748-4640-b351-1eb53ff05291",
+      "name": "Vijay Singh Yadav",
+      "role": "Victim",
+      "context": "Vijay Singh Yadav was the deceased in this case, allegedly murdered in Delhi. The prosecution claimed he was killed as part of a contract killing motivated by financial gain.",
+      "deceased": true
+    },
+    {
       "id": "f8c4fe47-2526-4956-935d-d340f5b52b29",
       "name": "Hitender @ Chhotu",
       "role": "Accused",
-      "context": "Hitender @ Chhotu is identified as the main accused and alleged gang leader in the case. He was charged with murder and criminal conspiracy in the killing of Vijay Singh Yadav."
+      "context": "Hitender @ Chhotu was identified as the main accused and alleged gang leader in the murder conspiracy. He was charged under Section 302 (Murder) and Section 120B (Criminal conspiracy) of the IPC.",
+      "deceased": false
     },
     {
       "id": "a6e581cc-7ecf-44ab-ae90-a3a316ace1c7",
       "name": "Deepak @ Charu",
       "role": "Accused",
-      "context": "Deepak @ Charu is listed as one of the accused persons in the case. He was charged under Section 302 (Murder) and Section 120B (Criminal conspiracy) of the IPC."
+      "context": "Deepak @ Charu was named as one of the accused in the case, involved in the alleged conspiracy to murder Vijay Singh Yadav. He was charged under relevant sections of the IPC for murder and criminal conspiracy.",
+      "deceased": false
     },
     {
       "id": "e85a40da-5995-4d72-8b9d-2ac5003c7706",
       "name": "Bhisham",
       "role": "Accused",
-      "context": "Bhisham is named as an accused in the case and was charged with murder and criminal conspiracy. He was alleged to be part of the criminal gang involved in the contract killing."
+      "context": "Bhisham was listed among the accused persons in the criminal conspiracy to commit murder. He was charged under Section 302 and Section 120B of the IPC.",
+      "deceased": false
     },
     {
       "id": "692afca2-35be-4b72-8507-0ad4364256b5",
       "name": "Desh Raj",
       "role": "Accused",
-      "context": "Desh Raj is listed among the accused persons in the case. He was charged with murder and criminal conspiracy related to the death of Vijay Singh Yadav."
+      "context": "Desh Raj was named as an accused in the case, alleged to be part of the conspiracy to murder Vijay Singh Yadav. He faced charges under the IPC for murder and criminal conspiracy.",
+      "deceased": false
     },
     {
       "id": "cf0542ce-2150-4601-9098-950bdc7733d6",
       "name": "Rishi Pal",
       "role": "Accused",
-      "context": "Rishi Pal is named as an accused in the case and was charged with murder and criminal conspiracy. He was alleged to be part of the conspiracy to kill Vijay Singh Yadav."
+      "context": "Rishi Pal was one of the accused in the case, implicated in the criminal conspiracy to kill the victim. He was charged under Section 302 and Section 120B of the IPC.",
+      "deceased": false
     },
     {
       "id": "da1097f8-2e0d-492f-b7f2-3419c1002a8b",
       "name": "Ashok Jain",
       "role": "Accused",
-      "context": "Ashok Jain is listed as an accused in the case and was charged with murder and criminal conspiracy. He was alleged to have participated in the plot to kill Vijay Singh Yadav."
+      "context": "Ashok Jain was named as an accused in the murder conspiracy. He was charged under the IPC for involvement in the alleged contract killing.",
+      "deceased": false
     },
     {
       "id": "c4646fad-f26c-44db-a88b-fe91af783e72",
       "name": "Gopal Krishan Aggarwal",
       "role": "Accused",
-      "context": "Gopal Krishan Aggarwal is named as an accused in the case and was charged with murder and criminal conspiracy. He was alleged to be involved in the criminal conspiracy leading to the murder."
-    },
-    {
-      "id": "edf1936f-5748-4640-b351-1eb53ff05291",
-      "name": "Vijay Singh Yadav",
-      "role": "Victim",
-      "context": "Vijay Singh Yadav is the deceased in the case, allegedly murdered in Delhi. The prosecution claimed he was killed as part of a contract killing motivated by financial gain."
+      "context": "Gopal Krishan Aggarwal was listed among the accused in the case, alleged to have participated in the conspiracy to murder Vijay Singh Yadav. He faced charges under the IPC for murder and criminal conspiracy.",
+      "deceased": false
     }
   ],
   "activeWitness": null,
@@ -215,5 +223,5 @@
   ],
   "developments": [],
   "createdAt": "2026-03-30T05:14:56.302Z",
-  "updatedAt": "2026-03-30T06:04:06.699Z"
+  "updatedAt": "2026-03-30T06:08:30.711Z"
 }

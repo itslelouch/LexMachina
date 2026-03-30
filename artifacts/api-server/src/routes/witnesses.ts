@@ -1,6 +1,6 @@
 import { Router, type IRouter, type Response } from "express";
 import { loadCase, saveCase, type CasePerson } from "../lib/memory.js";
-import { extractPersonsFromText, mergePersons } from "../lib/aiEngine.js";
+import { extractPersonsFromText } from "../lib/aiEngine.js";
 import { randomUUID } from "node:crypto";
 
 const router: IRouter = Router();
@@ -41,7 +41,12 @@ router.post("/cases/:caseId/persons/extract", async (req, res) => {
   ].join("\n\n");
 
   const extracted = await extractPersonsFromText(fullText);
-  session.persons = mergePersons(session.persons, extracted);
+  const existingIds: Record<string, string> = {};
+  session.persons.forEach(p => { existingIds[p.name.toLowerCase()] = p.id; });
+  session.persons = extracted.map(p => ({
+    id: existingIds[p.name.toLowerCase()] ?? randomUUID(),
+    ...p,
+  }));
   await saveCase(session);
 
   res.json({ persons: session.persons });
@@ -65,6 +70,11 @@ router.post("/cases/:caseId/witness/call", async (req, res) => {
   const person = session.persons.find((p) => p.id === personId);
   if (!person) {
     res.status(404).json({ error: "Person not found in case" });
+    return;
+  }
+
+  if (person.deceased) {
+    res.status(400).json({ error: `${person.name} is deceased and cannot be called to testify` });
     return;
   }
 

@@ -228,9 +228,10 @@ For each person found, provide:
 - name: their full name as mentioned
 - role: their role in the case (e.g., "Eyewitness", "Police Officer", "Forensic Expert", "Accused", "Victim", "Investigating Officer", "Doctor", "Neighbor", "Relative of victim")
 - context: 2-3 sentences summarizing everything known about this person from the text
+- deceased: true if this person is dead (victim of the crime, killed, murdered, died, deceased, late) — false otherwise
 
 Return ONLY a valid JSON array. No explanation, no markdown, no extra text. Example format:
-[{"name":"John Smith","role":"Eyewitness","context":"John Smith claims to have seen the accused near the scene at 11 PM. He is a local shopkeeper who was closing his store at the time."}]
+[{"name":"John Smith","role":"Eyewitness","context":"John Smith claims to have seen the accused near the scene at 11 PM. He is a local shopkeeper who was closing his store at the time.","deceased":false},{"name":"Mary Doe","role":"Victim","context":"Mary Doe was found dead at the scene. She was the primary victim of the alleged murder.","deceased":true}]
 
 If no named persons are found, return an empty array: []
 

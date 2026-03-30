@@ -363,11 +363,14 @@ export default function Courtroom() {
                   {persons.map(person => {
                     const isActive = activeWitness?.personId === person.id;
                     const isCalling = isCallingWitness === person.id;
+                    const isDeceased = person.deceased;
                     return (
                       <div
                         key={person.id}
                         className={`rounded-xl p-3 border transition-all ${
-                          isActive
+                          isDeceased
+                            ? "bg-white/2 border-white/5 opacity-60"
+                            : isActive
                             ? "bg-orange-400/10 border-orange-400/40"
                             : "bg-white/3 border-white/5 hover:border-white/10"
                         }`}
@@ -376,12 +379,23 @@ export default function Courtroom() {
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center space-x-1.5">
                               {isActive && <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-pulse shrink-0" />}
-                              <p className="text-sm font-semibold text-white truncate">{person.name}</p>
+                              <p className={`text-sm font-semibold truncate ${isDeceased ? "text-white/50 line-through" : "text-white"}`}>
+                                {person.name}
+                              </p>
                             </div>
-                            <p className="text-[10px] text-orange-400/80 font-medium mt-0.5">{person.role}</p>
+                            <div className="flex items-center space-x-1.5 mt-0.5">
+                              <p className={`text-[10px] font-medium ${isDeceased ? "text-white/30" : "text-orange-400/80"}`}>
+                                {person.role}
+                              </p>
+                              {isDeceased && (
+                                <span className="text-[9px] uppercase tracking-wider font-bold text-red-400/60 bg-red-500/10 border border-red-500/20 px-1.5 py-0.5 rounded-full">
+                                  Deceased
+                                </span>
+                              )}
+                            </div>
                             <p className="text-[10px] text-white/40 mt-1 line-clamp-2">{person.context}</p>
                           </div>
-                          {isActive ? (
+                          {isDeceased ? null : isActive ? (
                             <Button
                               size="sm"
                               variant="ghost"
