@@ -58,6 +58,7 @@
     }
   ],
   "activeWitness": null,
+  "legalSystem": "general",
   "caseId": "2d3c2887-eea4-4af6-a1f1-52f36f591eec",
   "title": "State vs cg",
   "caseText": "1. Case Identity\nTitle: State vs. Hitender @ Chhotu & Others\nCourt: Additional Sessions Judge‑01, Tis Hazari Courts, Delhi\nFIR Involved: FIR No. 356/2007 (Hauz Qazi Police Station)\nJudgment Date: 21 April 2012\nPublic Judgment Source: Indian Kanoon public record �\nIndian Kanoon\n2. Incident Summary\nA murder was alleged: deceased Vijay Singh Yadav was killed in Delhi.\nThe prosecution’s claim was that several accused hired a criminal gang to murder him for pecuniary gain (contract killing) through shared criminal motives.\nMultiple accused were charged, including Hitender @ Chhotu, Ashok Jain, Rishi Pal, Gopal Krishan Aggarwal, and others — alleged to be part of a conspiracy to murder. �\nIndian Kanoon\n3. Accused Persons\nMain accused named in the case judgment include:\nHitender @ Chhotu (alleged gang leader)\nDeepak @ Charu\nBhisham\nDesh Raj\nRishi Pal\nAshok Jain\nGopal Krishan Aggarwal\n(For your simulator you can focus on a subset of these.) �\nIndian Kanoon\n4. Legal Charges\nMain Criminal Offences\nSection 302 of IPC – Murder\nSection 120B of IPC – Criminal conspiracy\n(Prosecution also attempted charges under the MCOCA organized crime act, which became central in dispute.)",
@@ -219,9 +220,25 @@
       "content": "Hitender @ Chhotu has been dismissed from the stand. Thank you for your testimony.",
       "timestamp": "2026-03-30T06:04:06.699Z",
       "controlledBy": "system"
+    },
+    {
+      "id": "478d8e2d-5e70-475d-a48b-f0d3a75a506a",
+      "role": "system",
+      "speaker": "Court",
+      "content": "Hitender @ Chhotu (Accused) has been called to the stand and sworn in.",
+      "timestamp": "2026-03-30T06:19:14.600Z",
+      "controlledBy": "system"
+    },
+    {
+      "id": "1b5aef37-a238-4b03-b303-3171436fbb5e",
+      "role": "system",
+      "speaker": "Court",
+      "content": "Hitender @ Chhotu has been dismissed from the stand. Thank you for your testimony.",
+      "timestamp": "2026-03-30T06:23:28.552Z",
+      "controlledBy": "system"
     }
   ],
   "developments": [],
   "createdAt": "2026-03-30T05:14:56.302Z",
-  "updatedAt": "2026-03-30T06:08:30.711Z"
+  "updatedAt": "2026-03-30T06:23:28.552Z"
 }

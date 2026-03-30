@@ -5,14 +5,15 @@ import { format } from "date-fns";
 import {
   Gavel, Sword, Shield, FileText, ChevronRight, Play, Square,
   AlertCircle, Plus, BrainCircuit, ArrowLeft, Scale, Cpu, Repeat,
-  UserCheck, Users, X, Loader2, RefreshCw,
+  UserCheck, Users, X, Loader2, RefreshCw, Briefcase, CheckCircle,
+  XCircle, Clock, Download, RotateCcw,
 } from "lucide-react";
 
 import {
   useLiveCase, useChatScroll, useCourtStream, useWitnessActions,
   useUpdateRoles, useUpdatePhase, useAddDevelopment,
 } from "@/hooks/use-courtroom";
-import type { CourtPhase, TranscriptEntry, CasePerson, ActiveWitness, LegalSystem } from "@workspace/api-client-react";
+import type { CourtPhase, TranscriptEntry, CasePerson, ActiveWitness, LegalSystem, EvidenceItem } from "@workspace/api-client-react";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -38,6 +39,7 @@ const LEGAL_SYSTEM_META: Record<string, { flag: string; label: string }> = {
 };
 
 const PHASE_LABELS: Record<string, string> = {
+  pre_trial_motions: "Pre-Trial Motions",
   opening_statements: "Opening Statements",
   prosecution_case: "Prosecution Case",
   defense_case: "Defense Case",
@@ -47,6 +49,7 @@ const PHASE_LABELS: Record<string, string> = {
 };
 
 const NEXT_PHASE: Record<CourtPhase, CourtPhase> = {
+  pre_trial_motions: "opening_statements",
   opening_statements: "prosecution_case",
   prosecution_case: "defense_case",
   defense_case: "closing_arguments",
@@ -80,6 +83,13 @@ export default function Courtroom() {
   const [isExtractingPersons, setIsExtractingPersons] = useState(false);
   const [isCallingWitness, setIsCallingWitness] = useState<string | null>(null);
   const [isDismissing, setIsDismissing] = useState(false);
+  const [sidebarTab, setSidebarTab] = useState<"docket" | "evidence" | "jury">("docket");
+  const [evidenceOpen, setEvidenceOpen] = useState(false);
+  const [evidenceTitle, setEvidenceTitle] = useState("");
+  const [evidenceDesc, setEvidenceDesc] = useState("");
+  const [evidenceSide, setEvidenceSide] = useState<"prosecution" | "defense">("prosecution");
+  const [isSubmittingEvidence, setIsSubmittingEvidence] = useState(false);
+  const [isAppealMode, setIsAppealMode] = useState(false);
 
   const pendingRolesRef = useRef<typeof session.roles | null>(null);
   const rolesTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -220,6 +230,69 @@ export default function Courtroom() {
     }
   };
 
+  const handleSubmitEvidence = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!evidenceTitle.trim() || !evidenceDesc.trim()) return;
+    setIsSubmittingEvidence(true);
+    try {
+      const res = await fetch(`${import.meta.env.BASE_URL}api/cases/${caseId}/evidence`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: evidenceTitle, description: evidenceDesc, submittedBy: evidenceSide }),
+      });
+      if (!res.ok) throw new Error("Failed to submit evidence");
+      setEvidenceOpen(false);
+      setEvidenceTitle("");
+      setEvidenceDesc("");
+      toast({ title: "Evidence submitted", description: `${evidenceTitle} has been added to the evidence board.` });
+    } catch {
+      toast({ title: "Failed to submit evidence", variant: "destructive" });
+    } finally {
+      setIsSubmittingEvidence(false);
+    }
+  };
+
+  const handleAdmitEvidence = async (evidenceId: string, admitted: boolean | null) => {
+    try {
+      await fetch(`${import.meta.env.BASE_URL}api/cases/${caseId}/evidence/${evidenceId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ admitted }),
+      });
+    } catch {
+      toast({ title: "Failed to update evidence", variant: "destructive" });
+    }
+  };
+
+  const handleExportTranscript = () => {
+    const meta = LEGAL_SYSTEM_META[session.legalSystem ?? "general"] ?? LEGAL_SYSTEM_META.general;
+    const lines: string[] = [`=== ${session.title} ===`, `Legal System: ${meta.flag} ${meta.label}`, `Phase: ${PHASE_LABELS[session.phase] ?? session.phase}`, `Exported: ${new Date().toLocaleString()}`, "", "--- TRANSCRIPT ---", ""];
+    for (const entry of session.transcript) {
+      const time = format(new Date(entry.timestamp), "HH:mm:ss");
+      lines.push(`[${time}] ${entry.speaker.toUpperCase()}: ${entry.content}`);
+      lines.push("");
+    }
+    if (session.evidence.length > 0) {
+      lines.push("--- EVIDENCE BOARD ---", "");
+      for (const e of session.evidence) {
+        const status = e.admitted === true ? "ADMITTED" : e.admitted === false ? "REJECTED" : "PENDING";
+        lines.push(`${e.exhibit} [${status}] — ${e.title}: ${e.description}`);
+      }
+    }
+    const blob = new Blob([lines.join("\n")], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${session.title.replace(/[^a-z0-9]/gi, "_")}_transcript.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({ title: "Transcript exported", description: "Saved as a text file." });
+  };
+
+  const objectionCount = session.transcript.filter(
+    (e) => e.content.toLowerCase().includes("objection") && (e.role === "prosecutor" || e.role === "defense")
+  ).length;
+
   const phaseLabel = PHASE_LABELS[session.phase] ?? session.phase.replace(/_/g, " ");
   const legalMeta = LEGAL_SYSTEM_META[session.legalSystem ?? "general"] ?? LEGAL_SYSTEM_META.general;
 
@@ -249,7 +322,22 @@ export default function Courtroom() {
           </Badge>
         </div>
 
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-3">
+          {objectionCount > 0 && (
+            <div className="hidden sm:flex items-center space-x-1.5 bg-red-500/10 border border-red-500/20 rounded-full px-3 py-1">
+              <span className="text-xs font-bold text-red-400">{objectionCount}</span>
+              <span className="text-[10px] text-red-400/70 font-semibold uppercase tracking-wider">Obj</span>
+            </div>
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleExportTranscript}
+            className="h-8 w-8 rounded-full hover:bg-white/10 text-white/50 hover:text-white"
+            title="Export transcript"
+          >
+            <Download className="w-4 h-4" />
+          </Button>
           <RoleToggle
             role="Judge" icon={<Gavel className="w-4 h-4" />} color="primary"
             isUser={session.roles.judge === "user"}
@@ -273,11 +361,30 @@ export default function Courtroom() {
 
         {/* Left Sidebar */}
         <aside className="w-72 border-r border-white/5 bg-black/20 flex flex-col shrink-0 overflow-hidden">
-          <div className="p-4 border-b border-white/5 flex items-center space-x-2">
-            <FileText className="w-5 h-5 text-primary" />
-            <h2 className="font-display font-semibold text-lg">Case Docket</h2>
+          {/* Tab Switcher */}
+          <div className="flex border-b border-white/5 shrink-0">
+            {(["docket", "evidence", "jury"] as const).map((tab) => {
+              const icons = { docket: <FileText className="w-3.5 h-3.5" />, evidence: <Briefcase className="w-3.5 h-3.5" />, jury: <Users className="w-3.5 h-3.5" /> };
+              const labels = { docket: "Docket", evidence: "Evidence", jury: "Jury" };
+              return (
+                <button
+                  key={tab}
+                  onClick={() => setSidebarTab(tab)}
+                  className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-3 text-[11px] font-bold uppercase tracking-wider transition-all ${
+                    sidebarTab === tab
+                      ? "text-primary border-b-2 border-primary bg-primary/5"
+                      : "text-white/30 hover:text-white/60"
+                  }`}
+                >
+                  {icons[tab]}
+                  {labels[tab]}
+                </button>
+              );
+            })}
           </div>
 
+          {/* DOCKET TAB */}
+          {sidebarTab === "docket" && (
           <div className="flex-1 overflow-y-auto p-4 transcript-scroll space-y-6">
             {/* Original Brief */}
             <div>
@@ -436,6 +543,166 @@ export default function Courtroom() {
               )}
             </div>
           </div>
+          )} {/* END DOCKET TAB */}
+
+          {/* EVIDENCE TAB */}
+          {sidebarTab === "evidence" && (
+            <div className="flex-1 overflow-y-auto p-4 transcript-scroll space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs uppercase tracking-wider text-muted-foreground font-bold">
+                  {(session as any).evidence?.length ?? 0} Exhibit{((session as any).evidence?.length ?? 0) !== 1 ? "s" : ""}
+                </span>
+                <Dialog open={evidenceOpen} onOpenChange={setEvidenceOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full hover:bg-primary/20 hover:text-primary">
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="glass-panel border-white/10 text-white sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle className="font-display text-2xl text-primary">Submit Evidence</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleSubmitEvidence} className="space-y-4 mt-4">
+                      <div className="space-y-2">
+                        <Label>Evidence Title</Label>
+                        <Input value={evidenceTitle} onChange={e => setEvidenceTitle(e.target.value)} className="bg-black/50 border-white/10" required placeholder="e.g., CCTV Footage at 11 PM" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Description</Label>
+                        <Textarea value={evidenceDesc} onChange={e => setEvidenceDesc(e.target.value)} className="bg-black/50 border-white/10 min-h-[100px]" required placeholder="Describe the evidence in detail..." />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Submitted by</Label>
+                        <div className="flex gap-3">
+                          {(["prosecution", "defense"] as const).map(side => (
+                            <button
+                              key={side}
+                              type="button"
+                              onClick={() => setEvidenceSide(side)}
+                              className={`flex-1 py-2 px-3 rounded-xl border text-sm font-semibold transition-all capitalize ${
+                                evidenceSide === side
+                                  ? side === "prosecution" ? "bg-blue-500/20 border-blue-500/50 text-blue-400" : "bg-emerald-500/20 border-emerald-500/50 text-emerald-400"
+                                  : "bg-white/5 border-white/10 text-white/40"
+                              }`}
+                            >
+                              {side}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <Button type="submit" disabled={isSubmittingEvidence} className="w-full bg-primary hover:bg-primary/80 text-black font-bold">
+                        {isSubmittingEvidence ? "Submitting..." : "Submit to Evidence Board"}
+                      </Button>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </div>
+
+              {!((session as any).evidence?.length) ? (
+                <p className="text-xs text-white/30 italic text-center p-4 bg-black/20 rounded-xl">No exhibits submitted yet.</p>
+              ) : (
+                <div className="space-y-3">
+                  {((session as any).evidence as EvidenceItem[]).map((item) => {
+                    const admitColor = item.admitted === true ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" : item.admitted === false ? "text-red-400 bg-red-500/10 border-red-500/20" : "text-yellow-400 bg-yellow-500/10 border-yellow-500/20";
+                    const AdmitIcon = item.admitted === true ? CheckCircle : item.admitted === false ? XCircle : Clock;
+                    return (
+                      <div key={item.id} className="bg-white/3 border border-white/8 rounded-xl p-3">
+                        <div className="flex items-start justify-between gap-2 mb-1.5">
+                          <div>
+                            <span className="text-[10px] font-bold text-primary/80 mr-2">{item.exhibit}</span>
+                            <span className={`text-[9px] font-bold uppercase border px-1.5 py-0.5 rounded-full ${admitColor}`}>
+                              {item.admitted === true ? "Admitted" : item.admitted === false ? "Rejected" : "Pending"}
+                            </span>
+                          </div>
+                          <AdmitIcon className={`w-3.5 h-3.5 shrink-0 ${admitColor.split(" ")[0]}`} />
+                        </div>
+                        <p className="text-sm font-semibold text-white/90 mb-1">{item.title}</p>
+                        <p className="text-[10px] text-white/50 line-clamp-2">{item.description}</p>
+                        <div className="flex items-center justify-between mt-2">
+                          <span className={`text-[9px] font-semibold uppercase ${item.submittedBy === "prosecution" ? "text-blue-400/70" : "text-emerald-400/70"}`}>
+                            {item.submittedBy}
+                          </span>
+                          {item.admitted === null && (
+                            <div className="flex gap-1">
+                              <button onClick={() => handleAdmitEvidence(item.id, true)} className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 font-bold">Admit</button>
+                              <button onClick={() => handleAdmitEvidence(item.id, false)} className="text-[9px] px-2 py-0.5 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 font-bold">Reject</button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* JURY TAB */}
+          {sidebarTab === "jury" && (
+            <div className="flex-1 overflow-y-auto p-4 transcript-scroll space-y-6">
+              <div>
+                <h3 className="text-xs uppercase tracking-wider text-muted-foreground font-bold mb-4">Live Jury Sentiment</h3>
+                <p className="text-[10px] text-white/30 mb-4">Shifts with each AI attorney statement. Reflects perceived juror leanings.</p>
+
+                {(["prosecution", "defense", "neutral"] as const).map((side) => {
+                  const jurySentiment = (session as any).jurySentiment ?? { prosecution: 40, defense: 40, neutral: 20 };
+                  const val = jurySentiment[side] ?? 20;
+                  const colors = {
+                    prosecution: { bar: "bg-blue-500", label: "text-blue-400", border: "border-blue-500/20", bg: "bg-blue-500/10" },
+                    defense: { bar: "bg-emerald-500", label: "text-emerald-400", border: "border-emerald-500/20", bg: "bg-emerald-500/10" },
+                    neutral: { bar: "bg-white/30", label: "text-white/50", border: "border-white/10", bg: "bg-white/5" },
+                  };
+                  const c = colors[side];
+                  return (
+                    <div key={side} className={`p-3 rounded-xl border ${c.border} ${c.bg} mb-3`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className={`text-xs font-bold uppercase tracking-wider ${c.label}`}>{side}</span>
+                        <span className={`text-lg font-display font-bold ${c.label}`}>{val}%</span>
+                      </div>
+                      <div className="h-2 bg-black/40 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full ${c.bar} rounded-full transition-all duration-700`}
+                          style={{ width: `${val}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {(session as any).verdict && (
+                <div className="p-4 bg-primary/10 border border-primary/30 rounded-xl">
+                  <div className="text-[10px] uppercase font-bold tracking-wider text-primary/70 mb-2">Verdict Rendered</div>
+                  <div className="text-sm font-bold text-primary mb-1">{(session as any).verdict.outcome}</div>
+                  <p className="text-[11px] text-white/60">{(session as any).verdict.summary}</p>
+                </div>
+              )}
+
+              {session.phase === "concluded" && (
+                <div>
+                  <div className="text-[10px] uppercase font-bold tracking-wider text-white/30 mb-3">Post-Verdict</div>
+                  {!isAppealMode ? (
+                    <Button
+                      variant="outline"
+                      className="w-full border-orange-500/30 text-orange-400 hover:bg-orange-500/10 hover:text-orange-400 gap-2"
+                      onClick={() => {
+                        setIsAppealMode(true);
+                        updatePhase.mutate({ caseId, data: { phase: "closing_arguments" } });
+                        toast({ title: "Appeal Filed", description: "The case has been remanded for closing arguments." });
+                      }}
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                      File Appeal
+                    </Button>
+                  ) : (
+                    <div className="text-xs text-orange-400/70 text-center p-3 bg-orange-500/5 border border-orange-500/20 rounded-xl">
+                      ⚖️ Appeal in progress — case remanded to Closing Arguments
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="p-4 border-t border-white/5 bg-black/40">
             <Button

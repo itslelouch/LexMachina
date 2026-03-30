@@ -10,6 +10,7 @@ import {
   getGetCaseQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 
 export function useChatScroll<T>(dep: T) {
   const ref = useRef<HTMLDivElement>(null);
@@ -42,6 +43,7 @@ export type StreamState = {
 
 export function useCourtStream(caseId: string) {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const abortRef = useRef<AbortController | null>(null);
   const [streamState, setStreamState] = useState<StreamState>({
     isPending: false,
@@ -103,7 +105,10 @@ export function useCourtStream(caseId: string) {
               continue;
             }
 
-            if (eventName === "ai_start") {
+            if (eventName === "error") {
+              const msg = (data.message as string) ?? "The AI encountered an error. Please try again.";
+              toast({ title: "AI Error", description: msg, variant: "destructive" });
+            } else if (eventName === "ai_start") {
               setStreamState({
                 isPending: true,
                 activeRole: data.role as "judge" | "prosecutor" | "defense",

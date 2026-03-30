@@ -44,16 +44,25 @@ A full-stack AI courtroom simulator where:
 - **Shared memory**: All 3 roles share the full transcript (JSON file per case session)
 - **Case upload**: User provides case brief/evidence at start
 - **Developments**: User can add new evidence/testimony mid-proceedings
-- **6 court phases**: Opening Statements → Prosecution Case → Defense Case → Closing Arguments → Verdict → Concluded
-- **Viewer mode**: User controls no roles; "Auto Proceed" button advances all AI roles in sequence
+- **7 court phases**: Pre-Trial Motions → Opening Statements → Prosecution Case → Defense Case → Closing Arguments → Verdict → Concluded
+- **Viewer mode**: User controls no roles; "Auto Proceed" / "Auto Play" buttons advance all AI roles
+- **Legal System**: 4 jurisdictions (General, Indian BNS 2023, US Federal FRCrP, UK Common Law CrimPR)
+- **AI Demeanor**: 3 personality modes (Formal, Aggressive, Theatrical) per session
+- **Evidence Board**: Submit exhibits (A, B, C...), judge admit/reject, tracked in AI context
+- **Jury Sentiment**: Live prosecution/defense/neutral bars, shifted by AI attorney statements
+- **Objection Tally**: Auto-counted from transcript, shown in header
+- **Transcript Export**: Download full trial + evidence board as text file
+- **Appeal Mode**: Filed after concluded verdict, remands case to closing arguments
+- **Verdict History**: Shown in Recent Dockets with outcome snippet
 
 ### Key Backend Files
 - `artifacts/api-server/src/lib/longcat.ts` — LongCat API client with retry + rate limit handling
-- `artifacts/api-server/src/lib/memory.ts` — Case session CRUD, JSON file persistence in `data/cases/`
-- `artifacts/api-server/src/lib/prompts.ts` — System prompts for Judge, Prosecutor, Defense
+- `artifacts/api-server/src/lib/memory.ts` — Case session CRUD, JSON file persistence in `data/cases/`; includes EvidenceItem, JurySentiment, Verdict, AIDemeanor types
+- `artifacts/api-server/src/lib/prompts.ts` — System prompts for Judge, Prosecutor, Defense with demeanor injection + evidence context
 - `artifacts/api-server/src/lib/aiEngine.ts` — Orchestrates AI turns, builds messages, calls LongCat
-- `artifacts/api-server/src/routes/cases.ts` — Case CRUD, role management, developments, phase updates
+- `artifacts/api-server/src/routes/cases.ts` — Case CRUD, role management, developments, phase updates; accepts demeanor param
 - `artifacts/api-server/src/routes/courtroom.ts` — speak, ai-turn, auto-proceed endpoints
+- `artifacts/api-server/src/routes/evidence.ts` — CRUD for evidence items (GET/POST/PATCH/DELETE)
 
 ### Key Frontend Files
 - `artifacts/courtroom/src/pages/home.tsx` — Landing page with case creation form + recent dockets

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { Scale, FileText, Settings2, Play, AlertCircle, ChevronRight, Gavel, Trash2 } from "lucide-react";
+import { Scale, FileText, Settings2, Play, AlertCircle, ChevronRight, Gavel, Trash2, BrainCircuit } from "lucide-react";
 import { useListCases, useCreateCase, useDeleteCase } from "@/hooks/use-courtroom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,9 +11,10 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import type { LegalSystem } from "@workspace/api-client-react";
+import type { LegalSystem, AIDemeanor } from "@workspace/api-client-react";
 
 const PHASE_LABELS: Record<string, string> = {
+  pre_trial_motions: "Pre-Trial Motions",
   opening_statements: "Opening Statements",
   prosecution_case: "Prosecution Case",
   defense_case: "Defense Case",
@@ -29,6 +30,17 @@ const LEGAL_SYSTEMS: Array<{ value: LegalSystem; flag: string; label: string; de
   { value: "uk", flag: "🇬🇧", label: "UK Common Law", description: "Crown Court · CrimPR 2020 · PACE" },
 ];
 
+const AI_DEMEANORS: Array<{ value: AIDemeanor; icon: string; label: string; description: string }> = [
+  { value: "formal", icon: "🎓", label: "Formal", description: "Measured, precise, by the book" },
+  { value: "aggressive", icon: "⚔️", label: "Aggressive", description: "Sharp, combative, unrelenting" },
+  { value: "theatrical", icon: "🎭", label: "Theatrical", description: "Dramatic, persuasive, emotional" },
+];
+
+const PHASE_STATUS_COLOR: Record<string, string> = {
+  concluded: "text-white/40",
+  verdict: "text-emerald-400",
+};
+
 export default function Home() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
@@ -41,6 +53,7 @@ export default function Home() {
   const [caseText, setCaseText] = useState("");
   const [roles, setRoles] = useState({ judge: false, prosecutor: false, defense: false });
   const [legalSystem, setLegalSystem] = useState<LegalSystem>("general");
+  const [demeanor, setDemeanor] = useState<AIDemeanor>("formal");
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const handleStartSession = async (e: React.FormEvent) => {
@@ -55,6 +68,7 @@ export default function Home() {
           title,
           caseText,
           legalSystem,
+          demeanor,
           roles: {
             judge: roles.judge ? "user" : "ai",
             prosecutor: roles.prosecutor ? "user" : "ai",
@@ -192,6 +206,37 @@ export default function Home() {
                   </div>
                 </div>
 
+                {/* AI Demeanor Selector */}
+                <div className="p-6 bg-black/30 rounded-2xl border border-white/5 space-y-4">
+                  <div className="flex items-center space-x-3 mb-1">
+                    <BrainCircuit className="w-5 h-5 text-primary" />
+                    <h3 className="text-xl font-display font-semibold">AI Demeanor</h3>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Set the personality style of all AI courtroom actors. This shapes how the Judge, Prosecutor, and Defense AI behave.
+                  </p>
+                  <div className="grid grid-cols-3 gap-3 mt-4">
+                    {AI_DEMEANORS.map((d) => (
+                      <button
+                        key={d.value}
+                        type="button"
+                        onClick={() => setDemeanor(d.value)}
+                        className={`p-3 rounded-xl border text-left transition-all duration-200 ${
+                          demeanor === d.value
+                            ? "bg-primary/15 border-primary/50 shadow-[0_0_20px_rgba(212,175,55,0.15)]"
+                            : "bg-white/3 border-white/5 hover:border-white/15 hover:bg-white/5"
+                        }`}
+                      >
+                        <div className="text-2xl mb-2">{d.icon}</div>
+                        <div className={`text-sm font-bold ${demeanor === d.value ? "text-primary" : "text-white/80"}`}>
+                          {d.label}
+                        </div>
+                        <div className="text-[10px] text-white/40 mt-0.5 leading-tight">{d.description}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 {/* Role Assignments */}
                 <div className="p-6 bg-black/30 rounded-2xl border border-white/5 space-y-6">
                   <div className="flex items-center space-x-3 mb-2">
@@ -240,32 +285,51 @@ export default function Home() {
                 ) : !caseList?.cases?.length ? (
                   <div className="text-center py-10 text-white/30">No active cases found.</div>
                 ) : (
-                  caseList.cases.map((c) => (
-                    <div
-                      key={c.caseId}
-                      className="w-full text-left p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-primary/50 transition-all duration-200 group cursor-pointer relative"
-                      onClick={() => navigate(`/case/${c.caseId}`)}
-                    >
-                      <h4 className="font-semibold text-white/90 truncate pr-10">{c.title}</h4>
-                      <div className="flex items-center justify-between mt-2">
-                        <span className="text-xs text-primary font-medium px-2 py-0.5 rounded-full bg-primary/10">
-                          {PHASE_LABELS[c.phase] ?? c.phase.replace(/_/g, " ")}
-                        </span>
-                        <ChevronRight className="w-4 h-4 text-white/30 group-hover:text-primary transition-colors" />
-                      </div>
-                      <div className="text-[10px] text-white/40 mt-3 font-mono">
-                        {format(new Date(c.createdAt), "MMM dd, yyyy • HH:mm")}
-                      </div>
-                      <button
-                        onClick={(e) => handleDeleteCase(c.caseId, e)}
-                        disabled={deletingId === c.caseId}
-                        className="absolute top-3 right-3 p-1.5 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-red-500/20 text-white/30 hover:text-red-400 transition-all"
-                        title="Dismiss case"
+                  caseList.cases.map((c) => {
+                    const hasVerdict = c.verdict != null;
+                    const phaseColor = PHASE_STATUS_COLOR[c.phase] ?? "text-primary";
+                    return (
+                      <div
+                        key={c.caseId}
+                        className="w-full text-left p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-primary/50 transition-all duration-200 group cursor-pointer relative"
+                        onClick={() => navigate(`/case/${c.caseId}`)}
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  ))
+                        <h4 className="font-semibold text-white/90 truncate pr-10">{c.title}</h4>
+                        <div className="flex items-center justify-between mt-2">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className={`text-xs font-medium px-2 py-0.5 rounded-full bg-white/5 border border-white/10 ${phaseColor}`}>
+                              {PHASE_LABELS[c.phase] ?? c.phase.replace(/_/g, " ")}
+                            </span>
+                            {hasVerdict && (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 uppercase tracking-wider">
+                                {c.verdict!.outcome}
+                              </span>
+                            )}
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-white/30 group-hover:text-primary transition-colors shrink-0 ml-2" />
+                        </div>
+                        {hasVerdict && (
+                          <p className="text-[10px] text-white/40 mt-1.5 line-clamp-1 italic">{c.verdict!.summary}</p>
+                        )}
+                        <div className="flex items-center gap-2 mt-2">
+                          <span className="text-[9px] font-mono text-white/30">{format(new Date(c.createdAt), "MMM dd, yyyy · HH:mm")}</span>
+                          {c.demeanor && c.demeanor !== "formal" && (
+                            <span className="text-[9px] text-white/25">
+                              {c.demeanor === "aggressive" ? "⚔️" : "🎭"} {c.demeanor}
+                            </span>
+                          )}
+                        </div>
+                        <button
+                          onClick={(e) => handleDeleteCase(c.caseId, e)}
+                          disabled={deletingId === c.caseId}
+                          className="absolute top-3 right-3 p-1.5 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-red-500/20 text-white/30 hover:text-red-400 transition-all"
+                          title="Dismiss case"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    );
+                  })
                 )}
               </div>
             </div>

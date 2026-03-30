@@ -6,6 +6,7 @@ import {
   streamNextAiResponse,
   generateAllAiStatements,
 } from "../lib/aiEngine.js";
+import { logger } from "../lib/logger.js";
 
 const router: IRouter = Router();
 
@@ -21,6 +22,12 @@ function setupSSE(res: Response) {
 
 function sseEvent(res: Response, event: string, data: unknown) {
   res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+}
+
+function sseError(res: Response, message: string) {
+  try {
+    res.write(`event: error\ndata: ${JSON.stringify({ message })}\n\n`);
+  } catch { /* already closed */ }
 }
 
 router.post("/cases/:caseId/speak/stream", async (req, res) => {
@@ -55,18 +62,24 @@ router.post("/cases/:caseId/speak/stream", async (req, res) => {
 
   setupSSE(res);
 
-  const userEntry = addTranscriptEntry(session, role, content, "user");
-  await saveCase(session);
-  sseEvent(res, "user_entry", { entry: userEntry });
+  try {
+    const userEntry = addTranscriptEntry(session, role, content, "user");
+    await saveCase(session);
+    sseEvent(res, "user_entry", { entry: userEntry });
 
-  if (triggerAiResponse) {
-    await streamNextAiResponse(
-      session,
-      role,
-      (aiRole) => sseEvent(res, "ai_start", { role: aiRole }),
-      (aiRole, token) => sseEvent(res, "token", { role: aiRole, token }),
-      (aiRole, entry) => sseEvent(res, "ai_entry", { role: aiRole, entry })
-    );
+    if (triggerAiResponse) {
+      await streamNextAiResponse(
+        session,
+        role,
+        (aiRole) => sseEvent(res, "ai_start", { role: aiRole }),
+        (aiRole, token) => sseEvent(res, "token", { role: aiRole, token }),
+        (aiRole, entry) => sseEvent(res, "ai_entry", { role: aiRole, entry })
+      );
+    }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    logger.error({ caseId, err: message }, "speak/stream failed");
+    sseError(res, message);
   }
 
   sseEvent(res, "done", {});
@@ -102,14 +115,20 @@ router.post("/cases/:caseId/ai-turn/stream", async (req, res) => {
   setupSSE(res);
   sseEvent(res, "ai_start", { role });
 
-  const entry = await streamAiStatement(
-    session,
-    role,
-    (token) => sseEvent(res, "token", { role, token }),
-    context
-  );
+  try {
+    const entry = await streamAiStatement(
+      session,
+      role,
+      (token) => sseEvent(res, "token", { role, token }),
+      context
+    );
+    sseEvent(res, "ai_entry", { role, entry });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    logger.error({ caseId, role, err: message }, "ai-turn/stream failed");
+    sseError(res, message);
+  }
 
-  sseEvent(res, "ai_entry", { role, entry });
   sseEvent(res, "done", {});
   res.end();
 });
@@ -125,12 +144,18 @@ router.post("/cases/:caseId/auto-proceed/stream", async (req, res) => {
 
   setupSSE(res);
 
-  await streamAllAiStatements(
-    session,
-    (role) => sseEvent(res, "ai_start", { role }),
-    (role, token) => sseEvent(res, "token", { role, token }),
-    (role, entry) => sseEvent(res, "ai_entry", { role, entry })
-  );
+  try {
+    await streamAllAiStatements(
+      session,
+      (role) => sseEvent(res, "ai_start", { role }),
+      (role, token) => sseEvent(res, "token", { role, token }),
+      (role, entry) => sseEvent(res, "ai_entry", { role, entry })
+    );
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    logger.error({ caseId, err: message }, "auto-proceed/stream failed");
+    sseError(res, message);
+  }
 
   sseEvent(res, "done", {});
   res.end();

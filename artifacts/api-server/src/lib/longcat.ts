@@ -123,36 +123,52 @@ export async function streamLongCat(
       const decoder = new TextDecoder();
       let fullContent = "";
       let buffer = "";
+      let rawCapture = "";
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        buffer += decoder.decode(value, { stream: true });
+        const chunk = decoder.decode(value, { stream: true });
+        buffer += chunk;
+        if (rawCapture.length < 2000) rawCapture += chunk;
+
         const lines = buffer.split("\n");
         buffer = lines.pop() ?? "";
 
         for (const line of lines) {
           if (!line.startsWith("data: ")) continue;
           const data = line.slice(6).trim();
-          if (data === "[DONE]") break;
+          if (data === "[DONE]") continue;
 
           try {
             const parsed = JSON.parse(data) as {
-              choices?: Array<{ delta?: { content?: string } }>;
+              choices?: Array<{ delta?: { content?: string }; finish_reason?: string }>;
+              error?: { message?: string; type?: string; code?: string };
             };
+
+            if (parsed.error) {
+              throw new Error(`LongCat stream error: ${parsed.error.message ?? JSON.stringify(parsed.error)}`);
+            }
+
             const token = parsed.choices?.[0]?.delta?.content;
             if (token) {
               fullContent += token;
               onToken(token);
             }
-          } catch {
+          } catch (parseErr) {
+            if (parseErr instanceof Error && parseErr.message.startsWith("LongCat stream error")) {
+              throw parseErr;
+            }
             // Skip malformed chunks
           }
         }
       }
 
-      if (!fullContent) throw new Error("No content in streamed response");
+      if (!fullContent) {
+        logger.error({ rawCapture: rawCapture.slice(0, 500) }, "Empty stream — raw response captured");
+        throw new Error("No content in streamed response");
+      }
       return fullContent;
     } catch (err) {
       lastError = err instanceof Error ? err : new Error(String(err));

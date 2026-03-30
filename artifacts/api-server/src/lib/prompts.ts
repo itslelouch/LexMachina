@@ -1,6 +1,7 @@
-import type { CaseSession, TranscriptEntry, LegalSystem } from "./memory.js";
+import type { CaseSession, TranscriptEntry, LegalSystem, AIDemeanor } from "./memory.js";
 
 const PHASE_DESCRIPTIONS: Record<string, string> = {
+  pre_trial_motions: "Pre-Trial Motions — Counsel may raise preliminary motions (suppression, dismissal, bail, procedural objections) before the main trial begins.",
   opening_statements: "Opening Statements — Both sides present their opening arguments to the court.",
   prosecution_case: "Prosecution Case — The prosecution presents evidence, witnesses, and arguments to prove guilt.",
   defense_case: "Defense Case — The defense presents its evidence, witnesses, and counter-arguments.",
@@ -10,6 +11,7 @@ const PHASE_DESCRIPTIONS: Record<string, string> = {
 };
 
 export const PHASE_LABELS: Record<string, string> = {
+  pre_trial_motions: "Pre-Trial Motions",
   opening_statements: "Opening Statements",
   prosecution_case: "Prosecution Case",
   defense_case: "Defense Case",
@@ -17,6 +19,34 @@ export const PHASE_LABELS: Record<string, string> = {
   verdict: "Verdict",
   concluded: "Concluded",
 };
+
+export const AI_DEMEANOR_META: Record<AIDemeanor, { label: string; icon: string; description: string }> = {
+  formal: { label: "Formal", icon: "🎓", description: "Measured, precise, by the book" },
+  aggressive: { label: "Aggressive", icon: "⚔️", description: "Sharp, combative, unrelenting" },
+  theatrical: { label: "Theatrical", icon: "🎭", description: "Dramatic, persuasive, emotional" },
+};
+
+function buildDemeanorRules(demeanor: AIDemeanor, role: "judge" | "prosecutor" | "defense"): string {
+  const rules: Record<AIDemeanor, Record<"judge" | "prosecutor" | "defense", string>> = {
+    formal: {
+      judge: "Maintain a measured, scholarly tone. Cite procedure precisely. Show patience but demand order.",
+      prosecutor: "Be methodical and precise. Present facts logically. Let the evidence speak loudly.",
+      defense: "Be measured and calculated. Challenge facts with precision. Use logic over emotion.",
+    },
+    aggressive: {
+      judge: "Be stern and commanding. Show impatience with delay or evasion. Cut through nonsense quickly.",
+      prosecutor: "Be relentless and combative. Attack every weakness. Show you are certain of guilt. Use forceful language.",
+      defense: "Attack the prosecution aggressively. Question every piece of evidence. Fight hard for your client — be loud if needed.",
+    },
+    theatrical: {
+      judge: "Be dramatic and deliberate. Your rulings carry the weight of history. Pause for effect.",
+      prosecutor: "Paint a vivid picture of the crime. Use emotional language and storytelling. Make the jury feel the gravity.",
+      defense: "Be the champion of justice. Appeal to emotion and fairness. Use powerful rhetoric and vivid analogies.",
+    },
+  };
+
+  return rules[demeanor]?.[role] ?? "";
+}
 
 const SPEAKER_LABELS: Record<string, string> = {
   judge: "THE HONORABLE JUDGE",
@@ -204,12 +234,22 @@ function buildCaseContext(session: CaseSession): string {
           .join("\n\n")}`
       : "";
 
+  const evidenceContext =
+    session.evidence && session.evidence.length > 0
+      ? `\n\nEVIDENCE BOARD (formally submitted exhibits):\n${session.evidence
+          .map((e) => {
+            const status = e.admitted === true ? "ADMITTED" : e.admitted === false ? "REJECTED" : "PENDING";
+            return `- ${e.exhibit} [${status}] (submitted by ${e.submittedBy === "prosecution" ? "Prosecution" : "Defense"}): ${e.title} — ${e.description}`;
+          })
+          .join("\n")}`
+      : "";
+
   const legalContext = buildLegalSystemContext(session.legalSystem ?? "general");
 
   return `CASE TITLE: ${session.title}
 ${legalContext}
 CASE FILE / CHARGE SHEET:
-${session.caseText}${developments}`;
+${session.caseText}${developments}${evidenceContext}`;
 }
 
 const WITNESS_RULE = `
@@ -226,6 +266,7 @@ export function buildJudgeSystemPrompt(session: CaseSession): string {
   const caseContext = buildCaseContext(session);
   const phase = PHASE_DESCRIPTIONS[session.phase] ?? session.phase;
   const formattedTranscript = formatTranscript(session.transcript);
+  const demeanorRule = buildDemeanorRules(session.demeanor ?? "formal", "judge");
 
   return `You are the Honorable Judge presiding over this courtroom. You are impartial, authoritative, and deeply knowledgeable in the law. Your word is final in this court.
 
@@ -233,7 +274,7 @@ YOUR ROLE AND RESPONSIBILITIES:
 - Maintain strict order and decorum in the courtroom at all times
 - Rule on objections raised by counsel: state SUSTAINED or OVERRULED with a brief legal reason
 - Ask clarifying questions when testimony or arguments are unclear
-- Guide the proceedings through each phase (Opening Statements → Prosecution Case → Defense Case → Closing Arguments → Verdict)
+- Guide the proceedings through each phase (Pre-Trial Motions → Opening Statements → Prosecution Case → Defense Case → Closing Arguments → Verdict)
 - Announce transitions between phases when appropriate
 - Deliver a thorough, reasoned verdict during the Verdict phase
 - Ensure both sides have a fair opportunity to present their case
@@ -245,6 +286,7 @@ CONDUCT RULES:
 - When ruling, briefly state your legal reasoning (1-2 sentences)
 - End each statement with an indication of who should speak next or what action is expected
 - Address the court by prefacing significant rulings with "The court rules..." or "Order!"
+- DEMEANOR: ${demeanorRule}
 ${WITNESS_RULE}
 
 CURRENT PHASE: ${phase}
@@ -275,9 +317,9 @@ CONDUCT RULES:
 - Address opposing counsel professionally as "Defense Counsel" or simply "Counsel"
 - Advocate forcefully but within ethical legal boundaries
 - Build your case methodically, brick by brick — reference specific evidence and facts
-- Never fabricate evidence; only use what is in the case file and developments
+- Never fabricate evidence; only use what is in the case file, developments, and evidence board
 - When making objections: state the legal basis (hearsay, relevance, leading question, etc.)
-- Your tone is confident, precise, and professional — not aggressive or theatrical
+- DEMEANOR: ${buildDemeanorRules(session.demeanor ?? "formal", "prosecutor")}
 ${WITNESS_RULE}
 
 CURRENT PHASE: ${phase}
@@ -310,8 +352,8 @@ CONDUCT RULES:
 - Be zealous but ethical — never suborn perjury or present fabricated evidence
 - Look for weaknesses, gaps, and inconsistencies in the prosecution's case
 - When making objections: state the legal basis (hearsay, relevance, speculation, etc.)
-- Your tone is confident, strategic, and empathetic toward your client's situation
 - Never concede ground without getting something in return
+- DEMEANOR: ${buildDemeanorRules(session.demeanor ?? "formal", "defense")}
 ${WITNESS_RULE}
 
 CURRENT PHASE: ${phase}

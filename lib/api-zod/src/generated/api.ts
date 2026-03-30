@@ -23,6 +23,7 @@ export const ListCasesResponse = zod.object({
       caseId: zod.string(),
       title: zod.string(),
       phase: zod.enum([
+        "pre_trial_motions",
         "opening_statements",
         "prosecution_case",
         "defense_case",
@@ -30,6 +31,9 @@ export const ListCasesResponse = zod.object({
         "verdict",
         "concluded",
       ]),
+      legalSystem: zod.enum(["general", "indian", "us_federal", "uk"]).optional(),
+      demeanor: zod.enum(["formal", "aggressive", "theatrical"]).optional(),
+      verdict: zod.object({ outcome: zod.string(), summary: zod.string(), timestamp: zod.string() }).optional().nullable(),
       createdAt: zod.string(),
     }),
   ),
@@ -46,6 +50,8 @@ export const CreateCaseBody = zod.object({
     prosecutor: zod.enum(["user", "ai"]),
     defense: zod.enum(["user", "ai"]),
   }),
+  legalSystem: zod.enum(["general", "indian", "us_federal", "uk"]).optional(),
+  demeanor: zod.enum(["formal", "aggressive", "theatrical"]).optional(),
 });
 
 /**
@@ -55,44 +61,75 @@ export const GetCaseParams = zod.object({
   caseId: zod.coerce.string(),
 });
 
-export const GetCaseResponse = zod.object({
+const COURT_PHASE = zod.enum([
+  "pre_trial_motions",
+  "opening_statements",
+  "prosecution_case",
+  "defense_case",
+  "closing_arguments",
+  "verdict",
+  "concluded",
+]);
+
+const TRANSCRIPT_ENTRY = zod.object({
+  id: zod.string(),
+  role: zod.enum(["judge", "prosecutor", "defense", "system", "witness"]),
+  speaker: zod.string(),
+  content: zod.string(),
+  timestamp: zod.string(),
+  controlledBy: zod.enum(["user", "ai", "system"]),
+});
+
+const EVIDENCE_ITEM = zod.object({
+  id: zod.string(),
+  exhibit: zod.string(),
+  title: zod.string(),
+  description: zod.string(),
+  submittedBy: zod.enum(["prosecution", "defense"]),
+  admitted: zod.boolean().nullable(),
+  timestamp: zod.string(),
+});
+
+const FULL_CASE = zod.object({
   caseId: zod.string(),
   title: zod.string(),
   caseText: zod.string(),
-  phase: zod.enum([
-    "opening_statements",
-    "prosecution_case",
-    "defense_case",
-    "closing_arguments",
-    "verdict",
-    "concluded",
-  ]),
+  legalSystem: zod.enum(["general", "indian", "us_federal", "uk"]).optional(),
+  demeanor: zod.enum(["formal", "aggressive", "theatrical"]).optional(),
+  phase: COURT_PHASE,
   roles: zod.object({
     judge: zod.enum(["user", "ai"]),
     prosecutor: zod.enum(["user", "ai"]),
     defense: zod.enum(["user", "ai"]),
   }),
-  transcript: zod.array(
-    zod.object({
-      id: zod.string(),
-      role: zod.enum(["judge", "prosecutor", "defense", "system"]),
-      speaker: zod.string(),
-      content: zod.string(),
-      timestamp: zod.string(),
-      controlledBy: zod.enum(["user", "ai", "system"]),
-    }),
-  ),
-  developments: zod.array(
-    zod.object({
-      id: zod.string(),
-      title: zod.string(),
-      content: zod.string(),
-      timestamp: zod.string(),
-    }),
-  ),
+  transcript: zod.array(TRANSCRIPT_ENTRY),
+  developments: zod.array(zod.object({
+    id: zod.string(),
+    title: zod.string(),
+    content: zod.string(),
+    timestamp: zod.string(),
+  })),
+  evidence: zod.array(EVIDENCE_ITEM).optional(),
+  jurySentiment: zod.object({ prosecution: zod.number(), defense: zod.number(), neutral: zod.number() }).optional(),
+  verdict: zod.object({ outcome: zod.string(), summary: zod.string(), timestamp: zod.string() }).optional().nullable(),
+  persons: zod.array(zod.object({
+    id: zod.string(),
+    name: zod.string(),
+    role: zod.string(),
+    context: zod.string(),
+    deceased: zod.boolean(),
+  })).optional(),
+  activeWitness: zod.object({
+    personId: zod.string(),
+    name: zod.string(),
+    role: zod.string(),
+    context: zod.string(),
+  }).nullable().optional(),
   createdAt: zod.string(),
   updatedAt: zod.string(),
 });
+
+export const GetCaseResponse = FULL_CASE;
 
 /**
  * @summary Delete case
@@ -120,44 +157,7 @@ export const UpdateRolesBody = zod.object({
   }),
 });
 
-export const UpdateRolesResponse = zod.object({
-  caseId: zod.string(),
-  title: zod.string(),
-  caseText: zod.string(),
-  phase: zod.enum([
-    "opening_statements",
-    "prosecution_case",
-    "defense_case",
-    "closing_arguments",
-    "verdict",
-    "concluded",
-  ]),
-  roles: zod.object({
-    judge: zod.enum(["user", "ai"]),
-    prosecutor: zod.enum(["user", "ai"]),
-    defense: zod.enum(["user", "ai"]),
-  }),
-  transcript: zod.array(
-    zod.object({
-      id: zod.string(),
-      role: zod.enum(["judge", "prosecutor", "defense", "system"]),
-      speaker: zod.string(),
-      content: zod.string(),
-      timestamp: zod.string(),
-      controlledBy: zod.enum(["user", "ai", "system"]),
-    }),
-  ),
-  developments: zod.array(
-    zod.object({
-      id: zod.string(),
-      title: zod.string(),
-      content: zod.string(),
-      timestamp: zod.string(),
-    }),
-  ),
-  createdAt: zod.string(),
-  updatedAt: zod.string(),
-});
+export const UpdateRolesResponse = FULL_CASE;
 
 /**
  * @summary User speaks as their role

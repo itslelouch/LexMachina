@@ -10,6 +10,7 @@ import {
   type RoleAssignment,
   type CourtPhase,
   type LegalSystem,
+  type AIDemeanor,
 } from "../lib/memory.js";
 import { PHASE_LABELS } from "../lib/prompts.js";
 import { extractPersonsFromText, mergePersons } from "../lib/aiEngine.js";
@@ -25,11 +26,12 @@ router.get("/cases", async (req, res) => {
 });
 
 router.post("/cases", async (req, res) => {
-  const { title, caseText, roles, legalSystem } = req.body as {
+  const { title, caseText, roles, legalSystem, demeanor } = req.body as {
     title?: string;
     caseText?: string;
     roles?: RoleAssignment;
     legalSystem?: LegalSystem;
+    demeanor?: AIDemeanor;
   };
 
   if (!title || !caseText || !roles) {
@@ -49,7 +51,10 @@ router.post("/cases", async (req, res) => {
     ? legalSystem
     : "general";
 
-  const session = createNewCase(title, caseText, roles, resolvedLegalSystem);
+  const validDemeanors: AIDemeanor[] = ["formal", "aggressive", "theatrical"];
+  const resolvedDemeanor: AIDemeanor = demeanor && validDemeanors.includes(demeanor) ? demeanor : "formal";
+
+  const session = createNewCase(title, caseText, roles, resolvedLegalSystem, resolvedDemeanor);
   await saveCase(session);
 
   extractPersonsFromText(caseText)

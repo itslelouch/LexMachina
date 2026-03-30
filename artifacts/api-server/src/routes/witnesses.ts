@@ -2,6 +2,7 @@ import { Router, type IRouter, type Response } from "express";
 import { loadCase, saveCase, type CasePerson } from "../lib/memory.js";
 import { extractPersonsFromText } from "../lib/aiEngine.js";
 import { randomUUID } from "node:crypto";
+import { logger } from "../lib/logger.js";
 
 const router: IRouter = Router();
 
@@ -15,6 +16,12 @@ function setupSSE(res: Response) {
 
 function sseEvent(res: Response, event: string, data: unknown) {
   res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+}
+
+function sseError(res: Response, message: string) {
+  try {
+    res.write(`event: error\ndata: ${JSON.stringify({ message })}\n\n`);
+  } catch { /* already closed */ }
 }
 
 router.get("/cases/:caseId/persons", async (req, res) => {
@@ -158,12 +165,18 @@ router.post("/cases/:caseId/witness/respond/stream", async (req, res) => {
   setupSSE(res);
   sseEvent(res, "witness_start", { name: session.activeWitness.name });
 
-  const { streamWitnessResponse } = await import("../lib/aiEngine.js");
-  const entry = await streamWitnessResponse(session, question, (token) =>
-    sseEvent(res, "token", { token })
-  );
+  try {
+    const { streamWitnessResponse } = await import("../lib/aiEngine.js");
+    const entry = await streamWitnessResponse(session, question, (token) =>
+      sseEvent(res, "token", { token })
+    );
+    sseEvent(res, "witness_entry", { entry });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    logger.error({ caseId, err: message }, "witness/respond/stream failed");
+    sseError(res, message);
+  }
 
-  sseEvent(res, "witness_entry", { entry });
   sseEvent(res, "done", {});
   res.end();
 });

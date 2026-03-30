@@ -8,7 +8,9 @@ const DATA_DIR = path.join(process.cwd(), "data", "cases");
 
 export type RoleController = "user" | "ai";
 export type LegalSystem = "general" | "indian" | "us_federal" | "uk";
+export type AIDemeanor = "formal" | "aggressive" | "theatrical";
 export type CourtPhase =
+  | "pre_trial_motions"
   | "opening_statements"
   | "prosecution_case"
   | "defense_case"
@@ -53,17 +55,43 @@ export type ActiveWitness = {
   context: string;
 };
 
+export type EvidenceItem = {
+  id: string;
+  exhibit: string;
+  title: string;
+  description: string;
+  submittedBy: "prosecution" | "defense";
+  admitted: boolean | null;
+  timestamp: string;
+};
+
+export type JurySentiment = {
+  prosecution: number;
+  defense: number;
+  neutral: number;
+};
+
+export type Verdict = {
+  outcome: string;
+  summary: string;
+  timestamp: string;
+};
+
 export type CaseSession = {
   caseId: string;
   title: string;
   caseText: string;
   legalSystem: LegalSystem;
+  demeanor: AIDemeanor;
   phase: CourtPhase;
   roles: RoleAssignment;
   transcript: TranscriptEntry[];
   developments: Development[];
   persons: CasePerson[];
   activeWitness: ActiveWitness | null;
+  evidence: EvidenceItem[];
+  jurySentiment: JurySentiment;
+  verdict?: Verdict;
   createdAt: string;
   updatedAt: string;
 };
@@ -92,6 +120,9 @@ export async function loadCase(caseId: string): Promise<CaseSession | null> {
       persons: [],
       activeWitness: null,
       legalSystem: "general",
+      demeanor: "formal",
+      evidence: [],
+      jurySentiment: { prosecution: 40, defense: 40, neutral: 20 },
       ...parsed,
     } as CaseSession;
   } catch (err) {
@@ -108,7 +139,7 @@ export async function deleteCase(caseId: string): Promise<boolean> {
 }
 
 export async function listCases(): Promise<
-  Array<Pick<CaseSession, "caseId" | "title" | "phase" | "createdAt">>
+  Array<Pick<CaseSession, "caseId" | "title" | "phase" | "createdAt" | "legalSystem" | "demeanor"> & { verdict?: Verdict }>
 > {
   await ensureDataDir();
   try {
@@ -124,13 +155,16 @@ export async function listCases(): Promise<
             title: session.title,
             phase: session.phase,
             createdAt: session.createdAt,
+            legalSystem: session.legalSystem ?? "general",
+            demeanor: session.demeanor ?? "formal",
+            verdict: session.verdict,
           };
         } catch {
           return null;
         }
       })
     );
-    return cases.filter(Boolean) as Array<Pick<CaseSession, "caseId" | "title" | "phase" | "createdAt">>;
+    return cases.filter(Boolean) as Array<Pick<CaseSession, "caseId" | "title" | "phase" | "createdAt" | "legalSystem" | "demeanor"> & { verdict?: Verdict }>;
   } catch {
     return [];
   }
@@ -140,7 +174,8 @@ export function createNewCase(
   title: string,
   caseText: string,
   roles: RoleAssignment,
-  legalSystem: LegalSystem = "general"
+  legalSystem: LegalSystem = "general",
+  demeanor: AIDemeanor = "formal"
 ): CaseSession {
   const caseId = randomUUID();
   const now = new Date().toISOString();
@@ -149,7 +184,7 @@ export function createNewCase(
     id: randomUUID(),
     role: "system",
     speaker: "Court",
-    content: `Court is now in session. The Honorable Judge presiding. This is the matter of: ${title}. All parties are present. Proceedings will begin with Opening Statements.`,
+    content: `Court is now in session. The Honorable Judge presiding. This is the matter of: ${title}. All parties are present. Proceedings will begin with Pre-Trial Motions.`,
     timestamp: now,
     controlledBy: "system",
   };
@@ -159,12 +194,15 @@ export function createNewCase(
     title,
     caseText,
     legalSystem,
-    phase: "opening_statements",
+    demeanor,
+    phase: "pre_trial_motions",
     roles,
     transcript: [openingEntry],
     developments: [],
     persons: [],
     activeWitness: null,
+    evidence: [],
+    jurySentiment: { prosecution: 40, defense: 40, neutral: 20 },
     createdAt: now,
     updatedAt: now,
   };
@@ -195,6 +233,19 @@ export function addTranscriptEntry(
   };
 
   session.transcript.push(entry);
+
+  // Update jury sentiment based on AI entries
+  if (controlledBy === "ai" && (role === "prosecutor" || role === "defense")) {
+    const shift = Math.floor(Math.random() * 5) + 1;
+    if (role === "prosecutor") {
+      session.jurySentiment.prosecution = Math.min(85, session.jurySentiment.prosecution + shift);
+      session.jurySentiment.defense = Math.max(15, session.jurySentiment.defense - shift);
+    } else {
+      session.jurySentiment.defense = Math.min(85, session.jurySentiment.defense + shift);
+      session.jurySentiment.prosecution = Math.max(15, session.jurySentiment.prosecution - shift);
+    }
+  }
+
   return entry;
 }
 
@@ -222,4 +273,44 @@ export function addDevelopment(
   session.transcript.push(announcementEntry);
 
   return dev;
+}
+
+export function addEvidence(
+  session: CaseSession,
+  title: string,
+  description: string,
+  submittedBy: "prosecution" | "defense"
+): EvidenceItem {
+  const exhibitLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const usedExhibits = new Set(session.evidence.map((e) => e.exhibit.replace(/^Exhibit\s+/i, "")));
+  let exhibitLabel = "A";
+  for (const letter of exhibitLetters) {
+    if (!usedExhibits.has(letter)) {
+      exhibitLabel = letter;
+      break;
+    }
+  }
+
+  const item: EvidenceItem = {
+    id: randomUUID(),
+    exhibit: `Exhibit ${exhibitLabel}`,
+    title,
+    description,
+    submittedBy,
+    admitted: null,
+    timestamp: new Date().toISOString(),
+  };
+  session.evidence.push(item);
+
+  const announcementEntry: TranscriptEntry = {
+    id: randomUUID(),
+    role: "system",
+    speaker: "Court",
+    content: `[EVIDENCE SUBMITTED]: ${item.exhibit} — "${title}" (submitted by ${submittedBy === "prosecution" ? "Prosecution" : "Defense"})`,
+    timestamp: new Date().toISOString(),
+    controlledBy: "system",
+  };
+  session.transcript.push(announcementEntry);
+
+  return item;
 }

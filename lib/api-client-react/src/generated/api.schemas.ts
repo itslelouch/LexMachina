@@ -34,9 +34,18 @@ export const LegalSystem = {
   uk: "uk",
 } as const;
 
+export type AIDemeanor = (typeof AIDemeanor)[keyof typeof AIDemeanor];
+
+export const AIDemeanor = {
+  formal: "formal",
+  aggressive: "aggressive",
+  theatrical: "theatrical",
+} as const;
+
 export type CourtPhase = (typeof CourtPhase)[keyof typeof CourtPhase];
 
 export const CourtPhase = {
+  pre_trial_motions: "pre_trial_motions",
   opening_statements: "opening_statements",
   prosecution_case: "prosecution_case",
   defense_case: "defense_case",
@@ -87,6 +96,22 @@ export interface Development {
   timestamp: string;
 }
 
+export interface EvidenceItem {
+  id: string;
+  exhibit: string;
+  title: string;
+  description: string;
+  submittedBy: "prosecution" | "defense";
+  admitted: boolean | null;
+  timestamp: string;
+}
+
+export interface JurySentiment {
+  prosecution: number;
+  defense: number;
+  neutral: number;
+}
+
 export interface CasePerson {
   id: string;
   name: string;
@@ -102,15 +127,25 @@ export interface ActiveWitness {
   context: string;
 }
 
+export interface Verdict {
+  outcome: string;
+  summary: string;
+  timestamp: string;
+}
+
 export interface CaseSession {
   caseId: string;
   title: string;
   caseText: string;
   legalSystem: LegalSystem;
+  demeanor: AIDemeanor;
   phase: CourtPhase;
   roles: RoleAssignment;
   transcript: TranscriptEntry[];
   developments: Development[];
+  evidence: EvidenceItem[];
+  jurySentiment: JurySentiment;
+  verdict: Verdict | null;
   persons: CasePerson[];
   activeWitness: ActiveWitness | null;
   createdAt: string;
@@ -121,6 +156,9 @@ export type CaseListResponseCasesItem = {
   caseId: string;
   title: string;
   phase: CourtPhase;
+  legalSystem: LegalSystem;
+  demeanor: AIDemeanor;
+  verdict: Verdict | null;
   createdAt: string;
 };
 
@@ -133,6 +171,7 @@ export interface CreateCaseRequest {
   caseText: string;
   roles: RoleAssignment;
   legalSystem?: LegalSystem;
+  demeanor?: AIDemeanor;
 }
 
 export interface UpdateRolesRequest {
@@ -191,4 +230,18 @@ export interface AddDevelopmentRequest {
 
 export interface UpdatePhaseRequest {
   phase: CourtPhase;
+}
+
+export interface AddEvidenceRequest {
+  title: string;
+  description: string;
+  submittedBy: "prosecution" | "defense";
+}
+
+export interface UpdateEvidenceRequest {
+  admitted: boolean | null;
+}
+
+export interface EvidenceListResponse {
+  evidence: EvidenceItem[];
 }
