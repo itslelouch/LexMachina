@@ -72,9 +72,21 @@ router.post("/cases/:caseId/speak/stream", async (req, res) => {
         session,
         role,
         content,
-        (aiRole) => sseEvent(res, "ai_start", { role: aiRole }),
+        (aiRole) => {
+          if (aiRole === "witness") {
+            sseEvent(res, "witness_start", { name: session.activeWitness?.name ?? "Witness" });
+          } else {
+            sseEvent(res, "ai_start", { role: aiRole });
+          }
+        },
         (aiRole, token) => sseEvent(res, "token", { role: aiRole, token }),
-        (aiRole, entry) => sseEvent(res, "ai_entry", { role: aiRole, entry })
+        (aiRole, entry) => {
+          if (aiRole === "witness") {
+            sseEvent(res, "witness_entry", { entry });
+          } else {
+            sseEvent(res, "ai_entry", { role: aiRole, entry });
+          }
+        }
       );
     }
   } catch (err) {
@@ -83,7 +95,7 @@ router.post("/cases/:caseId/speak/stream", async (req, res) => {
     sseError(res, message);
   }
 
-  sseEvent(res, "done", {});
+  sseEvent(res, "done", { session });
   res.end();
 });
 
@@ -148,9 +160,22 @@ router.post("/cases/:caseId/auto-proceed/stream", async (req, res) => {
   try {
     await streamAllAiStatements(
       session,
-      (role) => sseEvent(res, "ai_start", { role }),
+      (role) => {
+        if (role === "witness") {
+          sseEvent(res, "witness_start", { name: session.activeWitness?.name ?? "Witness" });
+        } else {
+          sseEvent(res, "ai_start", { role });
+        }
+      },
       (role, token) => sseEvent(res, "token", { role, token }),
-      (role, entry) => sseEvent(res, "ai_entry", { role, entry })
+      (role, entry) => {
+        if (role === "witness") {
+          sseEvent(res, "witness_entry", { entry });
+        } else {
+          sseEvent(res, "ai_entry", { role, entry });
+        }
+      },
+      (entry) => sseEvent(res, "system_entry", { entry })
     );
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
@@ -158,7 +183,7 @@ router.post("/cases/:caseId/auto-proceed/stream", async (req, res) => {
     sseError(res, message);
   }
 
-  sseEvent(res, "done", {});
+  sseEvent(res, "done", { session });
   res.end();
 });
 

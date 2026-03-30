@@ -8,6 +8,8 @@ import {
   useAddDevelopment,
   useUpdatePhase,
   getGetCaseQueryKey,
+  type TranscriptEntry,
+  type CaseSession,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -105,9 +107,20 @@ export function useCourtStream(caseId: string) {
               continue;
             }
 
+            const appendEntry = (entry: TranscriptEntry) => {
+              queryClient.setQueryData(getGetCaseQueryKey(caseId), (old: CaseSession | undefined) => {
+                if (!old) return old;
+                const alreadyHas = old.transcript.some(e => e.id === entry.id);
+                if (alreadyHas) return old;
+                return { ...old, transcript: [...old.transcript, entry] };
+              });
+            };
+
             if (eventName === "error") {
               const msg = (data.message as string) ?? "The AI encountered an error. Please try again.";
               toast({ title: "AI Error", description: msg, variant: "destructive" });
+            } else if (eventName === "user_entry") {
+              appendEntry(data.entry as TranscriptEntry);
             } else if (eventName === "ai_start") {
               setStreamState({
                 isPending: true,
@@ -127,13 +140,27 @@ export function useCourtStream(caseId: string) {
                 ...prev,
                 streamingContent: prev.streamingContent + (data.token as string),
               }));
-            } else if (eventName === "ai_entry" || eventName === "witness_entry") {
+            } else if (eventName === "ai_entry") {
+              appendEntry(data.entry as TranscriptEntry);
               setStreamState((prev) => ({
                 ...prev,
                 activeRole: null,
                 activeWitnessName: null,
                 streamingContent: "",
               }));
+            } else if (eventName === "witness_entry") {
+              appendEntry(data.entry as TranscriptEntry);
+              setStreamState((prev) => ({
+                ...prev,
+                activeRole: null,
+                activeWitnessName: null,
+                streamingContent: "",
+              }));
+            } else if (eventName === "system_entry") {
+              appendEntry(data.entry as TranscriptEntry);
+            } else if (eventName === "done" && data.session) {
+              // Replace full session in cache so jurySentiment, activeWitness etc are accurate
+              queryClient.setQueryData(getGetCaseQueryKey(caseId), data.session as CaseSession);
             }
           }
         }

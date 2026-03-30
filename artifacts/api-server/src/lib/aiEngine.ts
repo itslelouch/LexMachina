@@ -82,17 +82,141 @@ export async function streamWitnessResponse(
   return entry;
 }
 
+// ─── Internal witness helpers (no HTTP, mutate session in place) ────────────
+
+function callWitnessInternal(session: CaseSession, person: CasePerson): TranscriptEntry[] {
+  const entries: TranscriptEntry[] = [];
+  if (session.activeWitness) {
+    entries.push(addTranscriptEntry(session, "system",
+      `${session.activeWitness.name} has been excused from the stand.`, "system"));
+  }
+  session.activeWitness = { personId: person.id, name: person.name, role: person.role, context: person.context };
+  entries.push(addTranscriptEntry(session, "system",
+    `${person.name} (${person.role}) has been called to the stand and sworn in.`, "system"));
+  return entries;
+}
+
+function dismissWitnessInternal(session: CaseSession): TranscriptEntry | null {
+  if (!session.activeWitness) return null;
+  const name = session.activeWitness.name;
+  session.activeWitness = null;
+  return addTranscriptEntry(session, "system",
+    `${name} has been dismissed from the stand. Thank you for your testimony.`, "system");
+}
+
+function pickWitnessForExamination(session: CaseSession): CasePerson | null {
+  const alreadyCalled = new Set<string>();
+  for (const entry of session.transcript) {
+    const match = entry.content.match(/^(.+?) \(.+?\) has been called to the stand/);
+    if (match) alreadyCalled.add(match[1]);
+  }
+  return session.persons.find(p => !p.deceased && !alreadyCalled.has(p.name)) ?? null;
+}
+
+// ─── Full AI-driven examination round ────────────────────────────────────────
+
+export async function streamAiExaminationRound(
+  session: CaseSession,
+  examiningRole: Role,
+  onRoleStart: (role: Role | "witness") => void,
+  onToken: (role: Role | "witness", token: string) => void,
+  onRoleEntry: (role: Role | "witness", entry: TranscriptEntry) => void,
+  onSystemEntry: (entry: TranscriptEntry) => void,
+): Promise<void> {
+  const witness = pickWitnessForExamination(session);
+  if (!witness) return;
+
+  const opposingRole: Role = examiningRole === "prosecutor" ? "defense" : "prosecutor";
+  const side = examiningRole === "prosecutor" ? "Prosecution" : "Defense";
+
+  // 1. Examining attorney formally calls the witness
+  onRoleStart(examiningRole);
+  const callAnnounce = await streamAiStatement(
+    session, examiningRole,
+    (token) => onToken(examiningRole, token),
+    `The ${side} wishes to call ${witness.name} (${witness.role}) to the stand. Formally announce this to the court.`
+  );
+  onRoleEntry(examiningRole, callAnnounce);
+
+  // 2. System: witness sworn in
+  const callEntries = callWitnessInternal(session, witness);
+  await saveCase(session);
+  for (const e of callEntries) onSystemEntry(e);
+
+  // 3. Opening question from examining attorney
+  onRoleStart(examiningRole);
+  const q1 = await streamAiStatement(
+    session, examiningRole,
+    (token) => onToken(examiningRole, token),
+    `Ask ${witness.name} your first direct examination question.`
+  );
+  onRoleEntry(examiningRole, q1);
+
+  // 4. Witness answers q1
+  onRoleStart("witness");
+  const r1 = await streamWitnessResponse(session, q1.content, (token) => onToken("witness", token));
+  onRoleEntry("witness", r1);
+
+  // 5. Follow-up question
+  onRoleStart(examiningRole);
+  const q2 = await streamAiStatement(
+    session, examiningRole,
+    (token) => onToken(examiningRole, token),
+    `Ask ${witness.name} a follow-up question that deepens or clarifies their testimony.`
+  );
+  onRoleEntry(examiningRole, q2);
+
+  // 6. Witness answers q2
+  onRoleStart("witness");
+  const r2 = await streamWitnessResponse(session, q2.content, (token) => onToken("witness", token));
+  onRoleEntry("witness", r2);
+
+  // 7. Cross-examination by opposing counsel (if AI-controlled)
+  if (session.roles[opposingRole] === "ai") {
+    onRoleStart(opposingRole);
+    const crossQ = await streamAiStatement(
+      session, opposingRole,
+      (token) => onToken(opposingRole, token),
+      `Cross-examine ${witness.name} (${witness.role}). Challenge or undermine their testimony with a sharp, targeted question.`
+    );
+    onRoleEntry(opposingRole, crossQ);
+
+    onRoleStart("witness");
+    const crossR = await streamWitnessResponse(session, crossQ.content, (token) => onToken("witness", token));
+    onRoleEntry("witness", crossR);
+  }
+
+  // 8. Judge's ruling / instruction (if AI-controlled)
+  if (session.roles.judge === "ai") {
+    onRoleStart("judge");
+    const judgeNote = await streamAiStatement(
+      session, "judge",
+      (token) => onToken("judge", token),
+      `Make a brief ruling or observation on the examination of ${witness.name}, then instruct them to step down.`
+    );
+    onRoleEntry("judge", judgeNote);
+  }
+
+  // 9. Dismiss witness
+  const dismissEntry = dismissWitnessInternal(session);
+  await saveCase(session);
+  if (dismissEntry) onSystemEntry(dismissEntry);
+}
+
+// ─── Stream all AI statements (or trigger witness examination if applicable) ─
+
 export async function streamAllAiStatements(
   session: CaseSession,
   onRoleStart: (role: Role | "witness") => void,
   onToken: (role: Role | "witness", token: string) => void,
-  onRoleEntry: (role: Role | "witness", entry: TranscriptEntry) => void
+  onRoleEntry: (role: Role | "witness", entry: TranscriptEntry) => void,
+  onSystemEntry?: (entry: TranscriptEntry) => void,
 ): Promise<TranscriptEntry[]> {
   const entries: TranscriptEntry[] = [];
+  const sysEntry = onSystemEntry ?? (() => {});
 
-  // When a witness is on the stand, do a questioning round instead of the regular AI round
+  // If a witness is already on the stand, continue questioning them
   if (session.activeWitness) {
-    const { name, role: witnessRole } = session.activeWitness;
     const examiner: Role | null =
       session.roles.prosecutor === "ai" ? "prosecutor" :
       session.roles.defense === "ai" ? "defense" : null;
@@ -100,18 +224,16 @@ export async function streamAllAiStatements(
     if (examiner) {
       onRoleStart(examiner);
       const questionEntry = await streamAiStatement(
-        session,
-        examiner,
+        session, examiner,
         (token) => onToken(examiner, token),
-        `You are currently examining ${name} (${witnessRole}). Ask a relevant follow-up question based on their testimony so far.`
+        `Continue examining ${session.activeWitness.name} (${session.activeWitness.role}). Ask a relevant follow-up question.`
       );
       onRoleEntry(examiner, questionEntry);
       entries.push(questionEntry);
 
       onRoleStart("witness");
       const witnessEntry = await streamWitnessResponse(
-        session,
-        questionEntry.content,
+        session, questionEntry.content,
         (token) => onToken("witness", token)
       );
       onRoleEntry("witness", witnessEntry);
@@ -120,6 +242,22 @@ export async function streamAllAiStatements(
     return entries;
   }
 
+  // During prosecution or defense case phase with available persons → run full examination
+  const examinationPhases = ["prosecution_case", "defense_case"];
+  if (examinationPhases.includes(session.phase) && session.persons.length > 0) {
+    const examiningRole: Role = session.phase === "prosecution_case" ? "prosecutor" : "defense";
+    const examinerIsAi = session.roles[examiningRole] === "ai";
+
+    if (examinerIsAi && pickWitnessForExamination(session)) {
+      await streamAiExaminationRound(
+        session, examiningRole,
+        onRoleStart, onToken, onRoleEntry, sysEntry
+      );
+      return entries;
+    }
+  }
+
+  // Default: all AI roles speak in order
   const order: Role[] = ["judge", "prosecutor", "defense"];
   for (const role of order) {
     if (session.roles[role] === "ai") {
