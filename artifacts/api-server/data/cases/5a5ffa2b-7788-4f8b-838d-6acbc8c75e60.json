@@ -1,0 +1,34 @@
+{
+  "caseId": "5a5ffa2b-7788-4f8b-838d-6acbc8c75e60",
+  "title": "Debug Test",
+  "caseText": "Some content",
+  "legalSystem": "general",
+  "demeanor": "formal",
+  "phase": "pre_trial_motions",
+  "roles": {
+    "judge": "user",
+    "prosecutor": "ai",
+    "defense": "ai"
+  },
+  "transcript": [
+    {
+      "id": "bfb01d7a-4458-4ef3-81ee-b44d44ea26d5",
+      "role": "system",
+      "speaker": "Court",
+      "content": "Court is now in session. The Honorable Judge presiding. This is the matter of: Debug Test. All parties are present. Proceedings will begin with Pre-Trial Motions.",
+      "timestamp": "2026-03-30T07:28:38.005Z",
+      "controlledBy": "system"
+    }
+  ],
+  "developments": [],
+  "persons": [],
+  "activeWitness": null,
+  "evidence": [],
+  "jurySentiment": {
+    "prosecution": 40,
+    "defense": 40,
+    "neutral": 20
+  },
+  "createdAt": "2026-03-30T07:28:38.005Z",
+  "updatedAt": "2026-03-30T07:28:40.177Z"
+}
