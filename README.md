@@ -235,3 +235,4 @@ Cases are stored as JSON files in `api-server/data/cases/`. This folder is exclu
 ## License
 
 MIT — free to use, modify, and distribute.
+Cleaned history
