@@ -22,12 +22,7 @@
       "deceased": false
     }
   ],
-  "activeWitness": {
-    "personId": "7dd80876-4de5-4849-b28b-36f3f42e8f32",
-    "name": "Dinesh Sharma",
-    "role": "Eyewitness",
-    "context": "Dinesh Sharma, the victim’s brother, provided a witness statement claiming he saw the accused near the scene. He is an eyewitness to the events leading to the injury."
-  },
+  "activeWitness": null,
   "legalSystem": "indian",
   "demeanor": "theatrical",
   "evidence": [],
@@ -453,9 +448,65 @@
       "content": "I’m sorry, Your Honor, but I don’t understand that question. It looks like some kind of code or computer command—not something a person would normally say in court. I’m here to tell the truth about what I saw on December 3rd, 2016, when my brother Deepak was attacked. I saw Ravinder near the scene right after the fight, and I’ve already given my statement to the police. If the court wants to know what happened that night, I’ll answer—but I can’t respond to technical language I don’t understand.",
       "timestamp": "2026-03-30T07:22:03.442Z",
       "controlledBy": "ai"
+    },
+    {
+      "id": "7ed526b2-a73e-439f-bbda-6129d555dc5b",
+      "role": "judge",
+      "speaker": "The Honorable Judge",
+      "content": "Fuck off I am sending you to jail ",
+      "timestamp": "2026-03-30T07:40:31.908Z",
+      "controlledBy": "user"
+    },
+    {
+      "id": "088bebbc-586e-4c7f-944a-0a71040b6217",
+      "role": "witness",
+      "speaker": "Dinesh Sharma",
+      "content": "Your Honor, I—I don’t understand what’s happening. I came here to tell the truth about my brother Deepak’s death. I saw Ravinder that night, right after the fight, near where Deepak was found. I’ve already given my statement to the police. If I’ve done something wrong by speaking the truth, then I don’t know what to say… but I’m not lying. My brother is gone, and I just want justice. Please… don’t send me to jail. I’m only here because I saw what happened.",
+      "timestamp": "2026-03-30T07:40:38.434Z",
+      "controlledBy": "ai"
+    },
+    {
+      "id": "5eb0fb20-9bdb-42d2-94d1-505762f6667a",
+      "role": "judge",
+      "speaker": "The Honorable Judge",
+      "content": "जेल तो जाना पड़ेगा , झूठ बोल रहे हो कोर्ट में ",
+      "timestamp": "2026-03-30T07:41:47.434Z",
+      "controlledBy": "user"
+    },
+    {
+      "id": "60f08365-6ee2-47d7-b81e-ebb0b687e95e",
+      "role": "witness",
+      "speaker": "Dinesh Sharma",
+      "content": "Your Honor, main... main झूठ नहीं बोल रहा। मैं अपनी बहन के भाई हूँ, Deepak का भाई। 3 दिसंबर रात मैंने वाकई देखा कि Ravinder मेरे भाई के साथ झगड़ा कर रहा था, marriage function के बाद। जैसे ही लोग चले गए, मैंने सुना कि कहीं पर आवाज़ आ रही है, और जब मैं वहाँ पहुँचा, तो Deepak बेहोश पड़ा पाया, सिर पर खून था। Ravinder वहीं पास खड़ा था, अपने कपड़ों पर भी लाल दाग थे।  \n\nमैं सच बोल रहा हूँ, ईश्वर पर कसम खाकर कह रहा हूँ। अगर मैं झूठ बोल रहा होता, तो पुलिस में क्यों बताता? मेरा बहन Deepak के साथ था,",
+      "timestamp": "2026-03-30T07:41:53.758Z",
+      "controlledBy": "ai"
+    },
+    {
+      "id": "c97abeff-9684-4d8d-91e0-e36e0318afc2",
+      "role": "judge",
+      "speaker": "The Honorable Judge",
+      "content": "Ok , I am sending accused to jail ",
+      "timestamp": "2026-03-30T07:43:13.952Z",
+      "controlledBy": "user"
+    },
+    {
+      "id": "d5ed3fc7-0521-4fd7-8666-34e449ef3eb5",
+      "role": "witness",
+      "speaker": "Dinesh Sharma",
+      "content": "Your Honor… please, I—I don’t understand. I’m not here to decide who goes to jail. I’m only here to tell the truth about what I saw that night.  \n\nOn December 3rd, 2016, after the marriage function, I saw Ravinder arguing loudly with my brother Deepak near the back gate of the venue. They were pushing each other, shouting. Then suddenly, Ravinder swung at Deepak—hit him hard on the side of the head with something heavy, maybe a stone or a metal rod—I couldn’t see clearly in the dark. Deepak fell immediately.  \n\nI ran toward them, but Ravinder turned and ran away. When I reached Deepak, he was unconscious, bleeding from his head. His clothes were torn, and there was blood everywhere. I screamed for help, and people came running. That’s when I noticed Ravinder standing nearby, just watching—his shirt was stained red, and he was breathing heavily.  \n\nI told the police exactly this. I’ve signed my statement. I’m not lying. My brother is dead because of what happened that night.  \n\nIf the court believes me, then justice should be done. But if the court thinks I’m lying… then I don’t know what more I can say. I’ve already said everything I know.  \n\nBut sending someone to jail—that’s not my decision. I’m just the witness. I only want the truth to come out.",
+      "timestamp": "2026-03-30T07:43:35.637Z",
+      "controlledBy": "ai"
+    },
+    {
+      "id": "cea5e303-852f-42ac-ae40-5ea36ebeda66",
+      "role": "system",
+      "speaker": "Court",
+      "content": "Dinesh Sharma has been dismissed from the stand. Thank you for your testimony.",
+      "timestamp": "2026-03-30T07:43:56.922Z",
+      "controlledBy": "system"
     }
   ],
   "developments": [],
   "createdAt": "2026-03-30T07:09:16.069Z",
-  "updatedAt": "2026-03-30T07:22:03.442Z"
+  "updatedAt": "2026-03-30T07:43:56.922Z"
 }
