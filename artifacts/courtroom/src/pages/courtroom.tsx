@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, type ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRoute, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
@@ -13,6 +14,7 @@ import {
   useLiveCase, useChatScroll, useCourtStream, useWitnessActions,
   useUpdateRoles, useUpdatePhase, useAddDevelopment,
 } from "@/hooks/use-courtroom";
+import { getGetCaseQueryKey } from "@workspace/api-client-react";
 import type { CourtPhase, TranscriptEntry, CasePerson, ActiveWitness, LegalSystem, EvidenceItem } from "@workspace/api-client-react";
 
 import { Button } from "@/components/ui/button";
@@ -70,6 +72,7 @@ export default function Courtroom() {
   const { streamState, streamSpeak, streamAiTurn, streamAutoProceed, streamWitnessRespond } = useCourtStream(caseId);
   const { extractPersons, callWitness, dismissWitness } = useWitnessActions(caseId);
 
+  const queryClient = useQueryClient();
   const updateRoles = useUpdateRoles();
   const updatePhase = useUpdatePhase();
   const addDev = useAddDevelopment();
@@ -133,21 +136,35 @@ export default function Courtroom() {
   }, [session?.legalSystem, sidebarTab]);
 
   const handleRoleToggle = useCallback((role: Role, isUser: boolean) => {
-    pendingRolesRef.current = {
+    const newRoles = {
       ...(pendingRolesRef.current ?? session?.roles ?? { judge: "ai", prosecutor: "ai", defense: "ai" }),
       [role]: isUser ? "user" : "ai",
-    };
+    } as { judge: "user" | "ai"; prosecutor: "user" | "ai"; defense: "user" | "ai" };
+    pendingRolesRef.current = newRoles;
+
+    // Optimistically patch the cached session so the UI updates immediately
+    queryClient.setQueryData(getGetCaseQueryKey(caseId), (old: typeof session) => {
+      if (!old) return old;
+      return { ...old, roles: newRoles };
+    });
+
+    if (isUser) {
+      setSelectedRole(role);
+      setIsAutoPlaying(false);
+    } else if (selectedRole === role) {
+      setSelectedRole("");
+    }
+
     if (rolesTimeoutRef.current) clearTimeout(rolesTimeoutRef.current);
     rolesTimeoutRef.current = setTimeout(() => {
       if (pendingRolesRef.current) {
-        updateRoles.mutate({ caseId, data: { roles: pendingRolesRef.current } });
-        if (isUser) {
-          setSelectedRole(role);
-          setIsAutoPlaying(false);
-        }
+        updateRoles.mutate(
+          { caseId, data: { roles: pendingRolesRef.current } },
+          { onSuccess: () => queryClient.invalidateQueries({ queryKey: getGetCaseQueryKey(caseId) }) }
+        );
       }
     }, 350);
-  }, [caseId, session?.roles, updateRoles]);
+  }, [caseId, session?.roles, updateRoles, queryClient, selectedRole]);
 
   if (!caseId) return null;
   if (isLoading) return <LoadingScreen />;
@@ -406,25 +423,6 @@ export default function Courtroom() {
             </button>
           </div>
 
-          {/* Role toggles on mobile (hidden in header on mobile) */}
-          <div className="md:hidden flex items-center gap-2 px-4 py-3 border-b border-white/5 shrink-0">
-            <RoleToggle
-              role="Judge" icon={<Gavel className="w-4 h-4" />} color="primary"
-              isUser={session.roles.judge === "user"}
-              onToggle={(val) => { handleRoleToggle("judge", val); setSidebarOpen(false); }}
-            />
-            <RoleToggle
-              role="Prosecutor" icon={<Sword className="w-4 h-4" />} color="blue-500"
-              isUser={session.roles.prosecutor === "user"}
-              onToggle={(val) => { handleRoleToggle("prosecutor", val); setSidebarOpen(false); }}
-            />
-            <RoleToggle
-              role="Defense" icon={<Shield className="w-4 h-4" />} color="emerald-500"
-              isUser={session.roles.defense === "user"}
-              onToggle={(val) => { handleRoleToggle("defense", val); setSidebarOpen(false); }}
-            />
-          </div>
-
           {/* Tab Switcher */}
           <div className="flex border-b border-white/5 shrink-0">
             {(["docket", "evidence", ...(!isIndian ? ["jury"] : [])] as ("docket" | "evidence" | "jury")[]).map((tab) => {
@@ -450,6 +448,39 @@ export default function Courtroom() {
           {/* DOCKET TAB */}
           {sidebarTab === "docket" && (
           <div className="flex-1 overflow-y-auto p-4 transcript-scroll space-y-6">
+            {/* Role Assignments */}
+            <div>
+              <h3 className="text-xs uppercase tracking-wider text-muted-foreground font-bold mb-3">Your Roles</h3>
+              <div className="space-y-2">
+                {([
+                  { role: "judge" as Role, label: "Judge", icon: <Gavel className="w-4 h-4" />, color: "text-primary" },
+                  { role: "prosecutor" as Role, label: "Prosecutor", icon: <Sword className="w-4 h-4" />, color: "text-blue-400" },
+                  { role: "defense" as Role, label: "Defense", icon: <Shield className="w-4 h-4" />, color: "text-emerald-400" },
+                ] as { role: Role; label: string; icon: ReactNode; color: string }[]).map(({ role, label, icon, color }) => {
+                  const isUser = session.roles[role] === "user";
+                  return (
+                    <button
+                      key={role}
+                      onClick={() => { handleRoleToggle(role, !isUser); setSidebarOpen(false); }}
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl border transition-all ${
+                        isUser
+                          ? "bg-primary/10 border-primary/30"
+                          : "bg-black/30 border-white/10 hover:border-white/20"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <span className={isUser ? "text-primary" : color}>{icon}</span>
+                        <span className={`text-sm font-semibold ${isUser ? "text-white" : "text-white/60"}`}>{label}</span>
+                      </div>
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                        isUser ? "bg-primary/20 text-primary" : "bg-white/10 text-white/30"
+                      }`}>{isUser ? "You" : "AI"}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Original Brief */}
             <div>
               <h3 className="text-xs uppercase tracking-wider text-muted-foreground font-bold mb-3">Original Brief</h3>

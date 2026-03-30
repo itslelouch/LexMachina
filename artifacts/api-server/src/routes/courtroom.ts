@@ -71,6 +71,7 @@ router.post("/cases/:caseId/speak/stream", async (req, res) => {
       await streamNextAiResponse(
         session,
         role,
+        content,
         (aiRole) => sseEvent(res, "ai_start", { role: aiRole }),
         (aiRole, token) => sseEvent(res, "token", { role: aiRole, token }),
         (aiRole, entry) => sseEvent(res, "ai_entry", { role: aiRole, entry })
