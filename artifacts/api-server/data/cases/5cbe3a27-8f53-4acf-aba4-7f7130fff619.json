@@ -27,8 +27,8 @@
   "demeanor": "theatrical",
   "evidence": [],
   "jurySentiment": {
-    "prosecution": 41,
-    "defense": 39,
+    "prosecution": 37,
+    "defense": 43,
     "neutral": 20
   },
   "caseId": "5cbe3a27-8f53-4acf-aba4-7f7130fff619",
@@ -96,9 +96,81 @@
       "content": "Your Honor, while the prosecution relies heavily on the testimony of Dinesh Sharma, we submit that his account is uncorroborated, inconsistent with the timeline, and fails to establish beyond reasonable doubt that the accused delivered the fatal blow. The blood-stained clothes allegedly recovered from the accused lack a clear chain of custody, and under Section 23 of the Bharatiya Sakshya Adhiniyam, any evidence obtained without strict procedural compliance is inherently suspect. Given these critical gaps and the absence of direct forensic linkage, we maintain that the charges under Section 302 IPC cannot stand and urge the court to reconsider the framing of charges in light of these material deficiencies.",
       "timestamp": "2026-03-30T07:05:40.564Z",
       "controlledBy": "ai"
+    },
+    {
+      "id": "eaa4e3a1-bc24-4338-9803-efd49644b8f7",
+      "role": "judge",
+      "speaker": "The Honorable Judge",
+      "content": "The court has heard the arguments from both sides regarding the framing of charges under Section 302 IPC. While the defense raises concerns about the chain of custody and the reliability of eyewitness testimony, the law requires only a prima facie satisfaction at this stage—not proof beyond reasonable doubt.  \n\n**Order!** Charges are hereby framed against the accused, Ravinder, under Section 302 IPC for the murder of Deepak. The accused shall be asked to enter a plea.",
+      "timestamp": "2026-03-30T07:05:48.185Z",
+      "controlledBy": "ai"
+    },
+    {
+      "id": "fb6377ec-1331-4912-9a16-ac2fc83ccf92",
+      "role": "prosecutor",
+      "speaker": "Prosecution Counsel",
+      "content": "Your Honor, now that charges have been framed under Section 302 IPC, the prosecution stands ready to present a clear and compelling case grounded in credible evidence: the eyewitness account of Dinesh Sharma, who saw the accused assault the victim following a heated quarrel; the postmortem report confirming death by blunt force trauma consistent with that assault; and the recovery of blood-stained clothing from the accused, directly linking him to the crime. We will demonstrate that the accused acted with the intention to cause death, and we trust the court will find the evidence sufficient to sustain a conviction.",
+      "timestamp": "2026-03-30T07:06:00.234Z",
+      "controlledBy": "ai"
+    },
+    {
+      "id": "b4272938-837c-4314-a46e-076099ed1df0",
+      "role": "defense",
+      "speaker": "Defense Counsel",
+      "content": "Your Honor, while the prosecution seeks to frame this as a clear-cut case of murder, we submit that the evidence is far from conclusive—there is no direct proof that the accused struck the fatal blow, and the so-called eyewitness account is uncorroborated and riddled with inconsistencies that undermine its credibility. Furthermore, the recovery of blood-stained clothing lacks a documented chain of custody, raising serious questions under Section 23 of the Bharatiya Sakshya Adhiniyam, and without reliable forensic linkage, the prosecution’s theory rests on speculation, not proof. At this critical stage, where the burden is on the State to establish a prima facie case worthy of trial, we urge the court to recognize that reasonable doubt permeates every aspect of the prosecution’s narrative.",
+      "timestamp": "2026-03-30T07:06:04.946Z",
+      "controlledBy": "ai"
+    },
+    {
+      "id": "1b41a742-0785-4274-8db7-db21a9f6c9ca",
+      "role": "judge",
+      "speaker": "The Honorable Judge",
+      "content": "The court has carefully reviewed the chargesheet, the evidence on record, and the arguments presented by both the prosecution and the defense. While the defense raises valid concerns regarding the chain of custody and the reliability of eyewitness testimony, the law at the stage of charge framing requires only that the material before the court, if unrebutted, would be sufficient to establish the offense.  \n\n**Order!** The accused, Ravinder, pleads not guilty to the charge under Section 302 IPC. The trial shall now proceed to the next phase—Opening Statements. The prosecution may begin.",
+      "timestamp": "2026-03-30T07:06:25.527Z",
+      "controlledBy": "ai"
+    },
+    {
+      "id": "ce452abf-6e87-4404-9a2b-c719303c93ae",
+      "role": "prosecutor",
+      "speaker": "Prosecution Counsel",
+      "content": "Your Honor, the State will prove beyond reasonable doubt that the accused, Ravinder, brutally assaulted the deceased, Deepak, following a heated quarrel at a marriage function, delivering fatal blows that caused blunt force trauma to the head—confirmed by the postmortem report—and fled the scene, leaving the victim unconscious near Nehru Nagar. The eyewitness account of Dinesh Sharma, the victim’s brother, places the accused at the scene moments before the assault, and the recovery of blood-stained clothing from the accused directly links him to this heinous crime. We will demonstrate that the accused acted with clear intention to cause death, and the evidence, when viewed as a whole, leaves no room for reasonable doubt.",
+      "timestamp": "2026-03-30T07:06:43.827Z",
+      "controlledBy": "ai"
+    },
+    {
+      "id": "ea027872-9388-4bcc-a0ae-0d6f2a74ba15",
+      "role": "defense",
+      "speaker": "Defense Counsel",
+      "content": "Your Honor, the prosecution’s case rests on conjecture, not certainty—there is no direct evidence that the accused struck the fatal blow, and the so-called eyewitness account of Dinesh Sharma is uncorroborated, inconsistent, and fails to eliminate the very real possibility that a third party caused the victim’s injuries. The recovery of blood-stained clothing lacks a documented chain of custody, violating procedural safeguards under Section 23 of the Bharatiya Sakshya Adhiniyam, and without reliable forensic confirmation linking those stains to the deceased, the prosecution’s theory collapses into speculation. At every turn, reasonable doubt permeates the State’s narrative, and it is our solemn duty to ensure that no conviction is secured on the basis of suspicion alone.",
+      "timestamp": "2026-03-30T07:06:47.947Z",
+      "controlledBy": "ai"
+    },
+    {
+      "id": "23fa67d7-d0f3-4314-b206-ed23bf47b3df",
+      "role": "judge",
+      "speaker": "The Honorable Judge",
+      "content": "The court has heard the opening statements from both the prosecution and the defense. The prosecution alleges that the accused, Ravinder, committed murder under Section 302 IPC following a quarrel at a marriage function, while the defense contends that the evidence is circumstantial, lacks corroboration, and fails to establish guilt beyond reasonable doubt.  \n\n**Order!** The trial shall now proceed to the examination of prosecution witnesses. The prosecution may call its first witness to the stand.",
+      "timestamp": "2026-03-30T07:08:00.916Z",
+      "controlledBy": "ai"
+    },
+    {
+      "id": "d008ab8e-3d22-4ea1-89c8-7185c989134e",
+      "role": "prosecutor",
+      "speaker": "Prosecution Counsel",
+      "content": "Your Honor, the State calls Dinesh Sharma, the brother of the deceased, to the stand—a witness who will testify that he saw the accused, Ravinder, in a heated altercation with his brother Deepak moments before the fatal assault, and who observed the accused strike Deepak with a blunt object near Nehru Nagar, after which the victim collapsed unconscious. This eyewitness account, consistent with the postmortem report confirming death due to blunt force trauma, forms the cornerstone of our case, and we will demonstrate that the accused acted with clear intention to cause death.",
+      "timestamp": "2026-03-30T07:08:09.561Z",
+      "controlledBy": "ai"
+    },
+    {
+      "id": "33178c09-5690-4e80-9e70-7552f5f01a27",
+      "role": "defense",
+      "speaker": "Defense Counsel",
+      "content": "Your Honor, while the prosecution presents Dinesh Sharma as a reliable eyewitness, we will demonstrate that his testimony is fraught with inconsistencies, lacks independent corroboration, and fails to conclusively place the accused at the precise moment of the fatal assault—creating more doubt than certainty. Moreover, the absence of any forensic confirmation directly linking the accused to the weapon or the specific injuries suffered by the deceased renders this entire narrative speculative. Under Section 116 of the Bharatiya Sakshya Adhiniyam, the benefit of every reasonable doubt must go to the accused, and here, those doubts are not only present—they are overwhelming.",
+      "timestamp": "2026-03-30T07:08:20.446Z",
+      "controlledBy": "ai"
     }
   ],
   "developments": [],
   "createdAt": "2026-03-30T07:02:54.568Z",
-  "updatedAt": "2026-03-30T07:05:40.564Z"
+  "updatedAt": "2026-03-30T07:08:20.447Z"
 }

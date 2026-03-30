@@ -385,7 +385,7 @@ export default function Courtroom() {
       </header>
 
       {/* Main Layout */}
-      <div className="flex-1 flex overflow-hidden relative z-10">
+      <div className="flex-1 flex overflow-hidden">
 
         {/* Left Sidebar — desktop: always visible, mobile: slide-in overlay */}
         <aside className={`

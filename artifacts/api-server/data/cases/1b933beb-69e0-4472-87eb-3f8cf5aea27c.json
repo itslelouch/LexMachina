@@ -27,8 +27,8 @@
   "demeanor": "theatrical",
   "evidence": [],
   "jurySentiment": {
-    "prosecution": 40,
-    "defense": 40,
+    "prosecution": 41,
+    "defense": 39,
     "neutral": 20
   },
   "caseId": "1b933beb-69e0-4472-87eb-3f8cf5aea27c",
@@ -56,9 +56,25 @@
       "content": "The court notes the chargesheet filed under Section 302 of the Indian Penal Code, following the unfortunate demise of the victim, Deepak, allegedly due to injuries sustained during an altercation involving the accused, Ravinder. This court has reviewed the FIR, postmortem report, and preliminary witness statements, and finds sufficient grounds to proceed to trial.  \n\nCounsel may now raise any pre-trial motions, including applications for bail, discharge, or suppression of evidence—state your motions clearly and concisely.",
       "timestamp": "2026-03-30T07:05:32.230Z",
       "controlledBy": "ai"
+    },
+    {
+      "id": "8e038629-709f-4230-a2a3-1aec35c77a12",
+      "role": "prosecutor",
+      "speaker": "Prosecution Counsel",
+      "content": "Your Honor, the State opposes any application for bail at this stage, as the accused faces charges under Section 302 of the IPC for a brutal assault that resulted in the death of Deepak. The evidence—including the eyewitness account of the victim’s brother, Dinesh Sharma, who placed the accused at the scene during the altercation, the blood-stained clothes seized from the accused, and the postmortem confirming death due to blunt force trauma—collectively establishes a strong prima facie case. Given the gravity of the offense and the likelihood of the accused tampering with evidence or influencing witnesses, the State urges this court to deny bail and proceed with framing charges.",
+      "timestamp": "2026-03-30T07:05:46.886Z",
+      "controlledBy": "ai"
+    },
+    {
+      "id": "bb70a676-6e1e-4265-b95e-0be2f2ef33ba",
+      "role": "defense",
+      "speaker": "Defense Counsel",
+      "content": "Your Honor, we respectfully move for bail on behalf of the accused, Ravinder, on the grounds that the prosecution’s case rests heavily on circumstantial and uncorroborated evidence. The eyewitness account of Dinesh Sharma is inherently suspect—being the brother of the deceased, his testimony is likely biased and lacks independent verification, and the mere presence of blood-stained clothes does not conclusively prove guilt, especially without clear forensic linkage or proof of how the stains were transferred. Furthermore, the accused has deep local roots, no prior criminal record, and poses no flight risk, making incarceration before trial unnecessary and unjust under the principles of presumption of innocence enshrined in our legal framework.",
+      "timestamp": "2026-03-30T07:05:51.533Z",
+      "controlledBy": "ai"
     }
   ],
   "developments": [],
   "createdAt": "2026-03-30T06:59:33.042Z",
-  "updatedAt": "2026-03-30T07:05:32.230Z"
+  "updatedAt": "2026-03-30T07:05:51.534Z"
 }
